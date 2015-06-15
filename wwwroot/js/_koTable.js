@@ -3,11 +3,10 @@
 var KnockoutTable = (function () {
 
 
-    function KnockoutTable(pageSize) {
+    function KnockoutTable(pageSize, sortProperty, sortDirection) {
         var self = this;
         var selfId = new Date().getTime();
 
-        
         var maxPagesToShowInPaginator = 5;
         var defaultPageSize = 10;
 
@@ -96,21 +95,41 @@ var KnockoutTable = (function () {
 
         //self.addListener('currentPageChanged', log);
         //self.addListener('pagedItemsChanged', log);
+
+        setTimeout(function (me) {
+            var sortableHeading = $('[data-sort-property]');
+
+            sortableHeading.css('cursor', 'pointer');
+
+            sortableHeading.click(function (evt) {
+
+                console.log(evt);
+                ////var ctx = ko.contextFor(this);
+
+                ////if (ctx.$data.constructor === TablePagination) {
+                //$(this).closest('table').find('.sort-icon').remove();
+
+                //var sortProperty = $(this).attr('data-sort-property');
+                //var sortDir = ctx.$data.sortDirection() || 'asc';
+
+                //ctx.$data.sort(sortProperty, sortDir === 'asc' ? 'desc' : 'asc');
+
+                //if (sortDir === 'desc') {
+                //    $(this).prepend(descendingIconHtml);
+                //} else {
+                //    $(this).prepend(ascendingIconHtml);
+                //}
+                ////}
+
+            });
+
+
+        }, 25, self);
     }
 
     return KnockoutTable;
 
 })();
-
-
-// sort stuff
-KnockoutTable.prototype = {
-
-    sortItems: function (prop, dir) {
-
-    }
-
-};
 
 
 // event stuff
@@ -125,7 +144,7 @@ KnockoutTable.prototype = {
         this._listeners[type].push(listener);
     },
 
-    trigger: function (event,msg) {
+    trigger: function (event, msg) {
         if (typeof event == "string") {
             event = { type: event };
         }

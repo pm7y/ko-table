@@ -3,9 +3,9 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>koBootstrapTable - DEBUG</title>
-    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="lib/css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
-        .pagingControl {
+        /*.pagingControl {
             text-align: left;
         }
 
@@ -35,7 +35,7 @@
 
             tr td:nth-child(8) {
                 text-align: center;
-            }
+            }*/
     </style>
 </head>
 <body>
@@ -56,19 +56,20 @@
             </tr>
             </thead>
             <tbody data-bind="foreach: example1.pagedItems">
-                <tr>
-                    <td><span data-bind="text: id"></span></td>
-                    <td><span data-bind="text: name"></span></td>
-                    <td><span data-bind="text: age"></span></td>
-                    <td><span data-bind="text: gender"></span></td>
-                    <td><span data-bind="text: company"></span></td>
-                    <td><span data-bind="text: email"></span></td>
-                    <td><span data-bind="text: phone"></span></td>
-                    <td><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive}" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
-                    <td><span data-bind="text: isActive"></span></td>
-                </tr>
+            <tr>
+                <td><span data-bind="text: id"></span></td>
+                <td><span data-bind="text: name"></span></td>
+                <td><span data-bind="text: age"></span></td>
+                <td><span data-bind="text: gender"></span></td>
+                <td><span data-bind="text: company"></span></td>
+                <td><span data-bind="text: email"></span></td>
+                <td><span data-bind="text: phone"></span></td>
+                <td><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive}" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+                <td><span data-bind="text: isActive"></span></td>
+            </tr>
             </tbody>
         </table>
+        <br />
         <div>hasRows: <span data-bind="text: example1.hasRows"></span></div>
         <div>rowCount: <span data-bind="text: example1.rowCount"></span></div>
         <div>currentPage: <span data-bind="text: example1.currentPage() + 1"></span></div>
@@ -89,14 +90,13 @@
         </div>
     </div>
 
-    <script src="./js/jquery.js"></script>
-    <script src="./js/knockout-debug.js"></script>
-    <script src="./js/knockout.mapping-debug.js"></script>
-    <script src="./js/bootstrap.js"></script>
+    <script src="lib/js/jquery.js"></script>
+    <script src="lib/js/knockout-debug.js"></script>
+    <script src="lib/js/knockout.mapping-debug.js"></script>
+    <script src="lib/js/bootstrap.js"></script>
 
-    <!--<script src="./js/koBootstrapTable.js"></script>-->
-    <script src="./js/_koTable.js"></script>
-    <script src="./js/_data.js"></script>
-    <script src="./js/_app.js"></script>
+    <script src="js/_koTable.js"></script>
+    <script src="js/_data.js"></script>
+    <script src="js/_debug.js"></script>
 </body>
 </html>
