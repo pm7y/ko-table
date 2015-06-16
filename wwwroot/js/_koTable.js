@@ -3,12 +3,9 @@ ko.bindingHandlers.koTable = {
     init: function (tableElement, valueAccessor, allBindings, viewModel, bindingContext) {
 
         var params = valueAccessor();
-        var bindings = allBindings();
-
         var table = $(tableElement);
 
         var tbody = $(tableElement).find('tbody');
-        var tbodyElement = tbody.get(0);
         var tableId = $.trim((table.attr('id') || table.attr('name'))).replace('-', '').replace('.', '').replace('_', '');
 
         var rowsClickable = params.rowsClickable !== null ? params.rowsClickable : params.rowClickedCallback != null || false;
@@ -105,11 +102,7 @@ ko.bindingHandlers.koTable = {
         //console.log(['init', tableElement, params, bindings, viewModel, bindingContext]);
     },
     update: function (tableElement, valueAccessor, allBindings, viewModel, bindingContext) {
-
-        var params = valueAccessor();
-        var bindings = allBindings();
-
-        //console.log(['update', tableElement, params, bindings, viewModel, bindingContext]);
+        // mmm, nothing to see here
     }
 };
 
@@ -118,24 +111,26 @@ var KnockoutTable = (function () {
 
     function KnockoutTable(pageSize, initialSortProperty, initialSortDirection, rowClickedCallback, rowsClickable) {
         var self = this;
-        var selfId = new Date().getTime();
-
         var maxPagesToShowInPaginator = 5;
         var defaultPageSize = 10;
 
+        var items = ko.observableArray();
+        var internalSortParams = ko.observable({ 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || 'asc')).toLowerCase() });
+        var internalPageSize = ko.observable(pageSize && pageSize > 0 ? pageSize : defaultPageSize);
+        var internalRowsClickable = ko.observable(rowsClickable === true);
+
         self.currentPage = ko.observable(0);
 
-        var items = ko.observableArray();
 
         self.rowClickedCallback = function (evt) {
             if (rowClickedCallback && internalRowsClickable()) {
                 var clickedTr = $(evt.target).closest('tr');
-                var clickedTrIndex = clickedTr.index();
                 var data = ko.dataFor(clickedTr.get(0));
 
                 rowClickedCallback(clickedTr, data);
             }
         };
+
 
         self.rowClickedCallbackExists = ko.pureComputed({
             read: function () {
@@ -143,10 +138,6 @@ var KnockoutTable = (function () {
             }
         }, self);
 
-        internalSortParams = ko.observable({ 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || 'asc')).toLowerCase() });
-        internalPageSize = ko.observable(pageSize && pageSize > 0 ? pageSize : defaultPageSize);
-
-        internalRowsClickable = ko.observable(rowsClickable === true);
 
         self.rowsClickable = ko.computed({
             read: function () {
@@ -179,6 +170,7 @@ var KnockoutTable = (function () {
             }
         }, self);
 
+
         self.sortProperty = ko.computed({
             read: function () {
                 return internalSortParams().sortProperty;
@@ -196,6 +188,7 @@ var KnockoutTable = (function () {
             }
         }, self);
 
+
         self.sortDirection = ko.pureComputed({
             read: function () {
                 return internalSortParams().sortDirection;
@@ -212,12 +205,14 @@ var KnockoutTable = (function () {
             }
         }, self);
 
+
         self.toggleSortDirection = function () {
             var currentSortDir = self.sortDirection();
             var newSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
             self.sortDirection(newSortDir);
             return newSortDir;
         };
+
 
         function objectSortComparer(objA, objB) {
             var oA = objA[self.sortProperty()];
@@ -230,10 +225,12 @@ var KnockoutTable = (function () {
             }
         }
 
+
         self.clearItems = function () {
             items([]);
             self.currentPage(0);
         };
+
 
         self.setItems = function (objects) {
             if (ko.mapping) {
@@ -245,11 +242,13 @@ var KnockoutTable = (function () {
             items(objects);
         };
 
+
         self.gotoNextPage = function () {
             if (self.currentPage() < (self.pageCount() - 1)) {
                 self.currentPage(self.currentPage() + 1);
             }
         }
+
 
         self.gotoPreviousPage = function () {
             if (self.currentPage() > 0) {
@@ -257,13 +256,16 @@ var KnockoutTable = (function () {
             }
         }
 
+
         self.gotoLastPage = function () {
             self.currentPage(self.pageCount() - 1);
         }
 
+
         self.gotoFirstPage = function () {
             self.currentPage(0);
         }
+
 
         self.gotoPage = function (page) {
             var newPage = page || 0;
@@ -272,17 +274,21 @@ var KnockoutTable = (function () {
             }
         }
 
+
         self.isFirstPage = ko.pureComputed(function () {
             return self.currentPage() === 0;
         });
+
 
         self.isLastPage = ko.pureComputed(function () {
             return self.currentPage() === (self.pageCount() - 1);
         });
 
+
         self.pageCount = ko.pureComputed(function () {
             return Math.ceil((items().length / internalPageSize()) || 1);
         });
+
 
         self.paginationIndexes = ko.pureComputed(function () {
             var radius = (maxPagesToShowInPaginator - 1) / 2;
@@ -298,6 +304,7 @@ var KnockoutTable = (function () {
             return indexes;
         });
 
+
         self.pagedItems = ko.pureComputed(function () {
             var first = internalPageSize() * self.currentPage();
             var last = first + internalPageSize();
@@ -306,15 +313,16 @@ var KnockoutTable = (function () {
             return pagedItems;
         });
 
+
         self.hasRows = ko.pureComputed(function () {
             var hasRows = items() && items().length > 0;
             return hasRows;
         }, self);
 
+
         self.rowCount = ko.pureComputed(function () {
             return self.hasRows() ? items().length : 0;
         });
-
 
     }
 
@@ -323,8 +331,7 @@ var KnockoutTable = (function () {
 })();
 
 
-// event stuff - i may want to use this at some point
-
+// event stuff
 KnockoutTable.prototype = {
     _listeners: {},
     addListener: function (type, listener) {
@@ -334,7 +341,6 @@ KnockoutTable.prototype = {
 
         this._listeners[type].push(listener);
     },
-
     trigger: function (event, obj) {
         if (typeof event == "string") {
             event = { type: event };
@@ -344,8 +350,8 @@ KnockoutTable.prototype = {
             event.target = this;
         }
 
-        if (!event.type) {  //falsy
-            throw new Error("Event object missing 'type' property.");
+        if (!event.type) {
+            $.error("Event object missing 'type' property.");
         }
 
         if (this._listeners[event.type] instanceof Array) {
@@ -355,7 +361,6 @@ KnockoutTable.prototype = {
             }
         }
     },
-
     removeListener: function (type, listener) {
         if (this._listeners[type] instanceof Array) {
             var listeners = this._listeners[type];
