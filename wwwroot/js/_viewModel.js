@@ -1,33 +1,34 @@
-﻿
-var viewModel = function () {
+﻿/* jshint -W098 */
+var ViewModel = function () {
     var self = this;
 
 
     self.rowClicked = function (tr, data) {
-        console.log(data);
+        $("#rowClicked").html("<span>You clicked on " + data.name + "</span>");
     };
 
-    self.toggleRowClickability = function (evt) {
-        self.rowsClickable($(this).prop('checked') === true)
+    self.toggleRowClickability = function (data, evt) {
+        self.rowsClickable($(evt.target).prop("checked") === true);
+
+        return true;
     };
 
     self.loadAllData = function getData() {
         $.ajax({
-            url: 'api/Data',
-            type: 'GET',
-            dataType: 'json',
+            url: "api/Data",
+            type: "GET",
+            dataType: "json",
             success: function (data) {
-                console.log(data);
-
                 self.setItems(data);
-            },
-            error: function (x, y, z) {
-                console.log([x, y, z]);
             }
         });
     };
 
+    self.onInit = function () {
+        self.addListener("rowClicked", function (evt) {
+            console.log(evt);
+        });
+    };
 
     self.loadAllData();
-
 };

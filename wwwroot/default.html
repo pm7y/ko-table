@@ -20,7 +20,7 @@
         <h3>Example</h3>
         <table><tr><td><!-- this table is here to make sure a non-bound table doesn't cause problems ;) --></td></tr></table>
 
-        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, rowsClickable: false, rowClickedCallback: rowClicked }">
+        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, rowsClickable: true, rowClickedCallback: rowClicked }">
             <thead>
                 <tr>
                     <th data-sort-property="id">Id</th>
@@ -31,6 +31,9 @@
                     <th data-sort-property="email">Email</th>
                     <th data-sort-property="phone">Phone</th>
                     <th data-sort-property="isActive">Active</th>
+                </tr>
+                <tr>
+                    <th colspan="100"><input type="text" class="form-control ko_table_search" placeholder="search..." /></th>
                 </tr>
             </thead>
             <tbody data-bind="foreach: pagedItems">
@@ -66,8 +69,8 @@
                 <div>pageCount: <span data-bind="text: pageCount"></span></div>
                 <div>pageSize: <input type="number" data-bind="textInput : pageSize" max="50" style="width: 75px;" step="5" /></div>
                 <div>paginationIndexes: <span data-bind="text: paginationIndexes"></span></div>
-                <div data-bind="visible: rowClickedCallbackExists">rows clickable: <input id="rowsClickable" type="checkbox" />&nbsp;&nbsp;&nbsp;<span id="rowClicked"></span></div>
-                <div><button data-bind="click: clearItems">clearItems</button>&nbsp;<button data-bind="visible: !hasRows(), click: setItems.bind($data, [])">Reload Data</button></div>
+                <div data-bind="visible: rowClickedCallbackExists">rows clickable: <input type="checkbox" data-bind="checked: rowsClickable ,click: toggleRowClickability" />&nbsp;&nbsp;&nbsp;<span id="rowClicked"></span></div>
+                <div><button data-bind="click: clearItems">clearItems</button>&nbsp;<button data-bind="visible: !hasRows(), click: setItems.bind($data, loadAllData())">Reload Data</button></div>
                 <br />
                 <div>
                     <button data-bind="click: gotoFirstPage"><<</button>
