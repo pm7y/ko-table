@@ -1,4 +1,4 @@
-﻿var dataset = [
+﻿[
   {
       "id": 1,
       "isActive": false,

@@ -1,42 +1,43 @@
 ﻿
-
 var viewModel = function () {
     var self = this;
 
-    self.example1 = new KnockoutTable();
-    //self.example1 = new TablePagination(10, 'name', 'desc');
-    //self.example2 = new TablePagination(4, 'id', 'desc');
 
-    //self.example1.setItems(dataset);
-    //self.example2.setItems([]);
-    self.example1.items(dataset);
+    self.rowClicked = function (tr, data) {
+        console.log(data);
+    };
 
-    //self.removeFirst = function () {
-    //    self.example1.setItems(self.example1.items.slice(1));
-    //};
+    self.toggleRowClickability = function (evt) {
+        self.rowsClickable($(this).prop('checked') === true)
+    };
 
-    //self.rowClick = function (item, evt) {
-    //    var tbl = $(evt.target).closest('table');
-    //    var tr = $(evt.target).closest('tr');
-
-    //    tbl.find('tr.info span').css('font-weight', '');
-    //    tbl.find('tr.info').removeClass('info');
-
-    //    if (tr) {
-    //        var obj = ko.dataFor(tr.get(0));
-
-    //        tr.addClass('info');
-    //        tr.find('span').css('font-weight', 'bold');
-
-    //        console.log(obj);
-    //    }
-    //};
 };
 
+function getData()
+{
+    $.ajax({
+        url: 'api/Data',
+        type: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            console.log(data);
+
+            vm.setItems(data);
+        },
+        error: function (x, y, z) {
+            console.log([x, y, z]);
+        }
+    });
+}
+
+
+var vm = new viewModel();
+
 $(document).ready(function () {
-    var vm = new viewModel();
+
+    $('#rowsClickable').change(vm.toggleRowClickability);
 
     ko.applyBindings(vm);
 
-    //console.log(vm);
+    getData();
 });
