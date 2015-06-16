@@ -31,7 +31,6 @@
                     <th data-sort-property="email">Email</th>
                     <th data-sort-property="phone">Phone</th>
                     <th data-sort-property="isActive">Active</th>
-                    <th data-sort-property="isActive">Active Icon</th>
                 </tr>
             </thead>
             <tbody data-bind="foreach: pagedItems">
@@ -44,7 +43,6 @@
                     <td><span data-bind="text: email"></span></td>
                     <td><span data-bind="text: phone"></span></td>
                     <td><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
-                    <td><span data-bind="text: isActive"></span></td>
                 </tr>
             </tbody>
             <tfoot>
