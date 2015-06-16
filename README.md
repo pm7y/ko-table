@@ -10,6 +10,11 @@ To achieve this refer to the html and javascript below.
 ![An example table](./example_table.png "An example table")
 
 #### HTML ####
+The key thing to notice here is the ***koTable*** binding on the table element. The koTable binding will extend the viewModel object adding the necessary functions and fields required to support paging and sorting.
+
+The tbody has a foreach binding bound to the ***pagedItems*** collection. But pagedItems isn't an object in the viewModel so where does it come from you cry? Well, it's added automatically by the ***koTable*** binding.
+
+Notice also the ***ko-table-pagination*** class on the div in the table footer. Any element in the table with this class will be rendered as a pagination control (as in the screenshot above).
 
 ```
 <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10}">
@@ -46,6 +51,8 @@ To achieve this refer to the html and javascript below.
 ```
 
 #### JavaScript ####
+
+Since the koTable binding extends the viewModel object all you really need to do to make the magic happen is to call self.setItems and pass your object array.
 
 ```javascript
 var viewModel = function () {
