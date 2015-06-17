@@ -4,6 +4,7 @@ using System.Web.Http;
 public class DataController : ApiController
 {
     private static readonly PersonRepository _personRepository = new PersonRepository();
+
     // GET api/<controller>
     public IEnumerable<Person> Get()
     {

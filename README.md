@@ -43,7 +43,7 @@ Notice also the ***ko-table-pagination*** class on the div in the table footer. 
 	<tfoot>
 	    <tr>
 	        <td>
-	            <div class="ko_table_pagination"></div>
+	            <div class="ko-table-pagination"></div>
 	        </td>
 	    </tr>
 	</tfoot>

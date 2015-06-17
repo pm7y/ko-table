@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web;
-using System.Web.UI.WebControls.WebParts;
 using Newtonsoft.Json;
-
 
 public class PersonRepository : IRepository<Person>
 {
@@ -14,7 +12,7 @@ public class PersonRepository : IRepository<Person>
 
     public PersonRepository()
     {
-        var jsonFile = HttpContext.Current.Server.MapPath("~/js/_data.js");
+        var jsonFile = HttpContext.Current.Server.MapPath("~/_dataSource.json");
         var jsonText = File.ReadAllText(jsonFile);
 
         var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText);
@@ -69,7 +67,7 @@ public class PersonRepository : IRepository<Person>
 
     public void Save()
     {
-        string jsonText = JsonConvert.SerializeObject(_allPeople);
+        var jsonText = JsonConvert.SerializeObject(_allPeople);
 
         var jsonFile = HttpContext.Current.Server.MapPath("~/js/_data.js");
         File.WriteAllText(jsonFile, jsonText);

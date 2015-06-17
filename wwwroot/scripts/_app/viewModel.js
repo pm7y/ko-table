@@ -1,10 +1,10 @@
-﻿/* jshint -W098 */
+﻿/*global toastr: true, $: true */
+
 var ViewModel = function () {
     var self = this;
 
-
     self.rowClicked = function (tr, data) {
-        $("#rowClicked").html("<span>You clicked on " + data.name + "</span>");
+        toastr.info(data.name, "You clicked a row!");
     };
 
     self.toggleRowClickability = function (data, evt) {
@@ -25,7 +25,7 @@ var ViewModel = function () {
     };
 
     self.onInit = function () {
-        self.addListener("rowClicked", function (evt) {
+        self.onRowClicked(function (evt) {
             console.log(evt);
         });
     };

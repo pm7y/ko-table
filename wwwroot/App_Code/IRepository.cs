@@ -11,5 +11,4 @@ public interface IRepository<T> : IDisposable where T : class
     void Update(T entry);
     void Delete(int id);
     void Save();
-
 }
