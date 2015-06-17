@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 public class DataController : ApiController
@@ -8,6 +10,7 @@ public class DataController : ApiController
     // GET api/<controller>
     public IEnumerable<Person> Get()
     {
+        Thread.Sleep(2000);
         return _personRepository.Get();
     }
 

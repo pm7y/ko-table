@@ -1,6 +1,6 @@
-﻿/*global toastr: true, $: true */
+﻿/*global toastr: true, $: true, sw: true */
 
-var ViewModel = function () {
+var ViewModel = (function () {
     var self = this;
 
     self.rowClicked = function (tr, data) {
@@ -13,22 +13,33 @@ var ViewModel = function () {
         return true;
     };
 
-    self.loadAllData = function getData() {
+    self.loadAllData = function () {
+        sw.elapsed('loading data...');
+        self.waitStart();
+
         $.ajax({
             url: "api/Data",
             type: "GET",
             dataType: "json",
             success: function (data) {
+                sw.elapsed('data loaded...');
+
                 self.setItems(data);
+
+               // self.waitEnd();
             }
         });
     };
 
     self.onInit = function () {
+        sw.elapsed('onInit');
+
+        self.loadAllData();
+
         self.onRowClicked(function (evt) {
             console.log(evt);
         });
     };
 
-    self.loadAllData();
-};
+    
+});

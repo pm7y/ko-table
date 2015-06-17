@@ -18,7 +18,7 @@
             </tr>
         </table>
 
-        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, rowsClickable: true, rowClickedCallback: rowClicked }">
+        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, rowsClickable: true, rowClickedCallback: rowClicked }">
             <thead>
                 <tr>
                     <th data-sort-property="id">Id</th>
@@ -97,7 +97,7 @@
                         <p class="form-control-static" data-bind="text: paginationIndexes"></p>
                     </div><div class="form-group">
                         <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
-                        <button class="btn btn-success" data-bind="visible: !hasRows(), click: setItems.bind($data, loadAllData())">Reload</button>
+                        <button class="btn btn-success" data-bind="click: loadAllData">Reload</button>
                     </div>
                     <div class="form-group">
                         <div>
@@ -116,11 +116,12 @@
     </div>
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
 
+    <script src="scripts/_app/stopwatch.js"></script>
     <script src="scripts/_app/koTable.js"></script>
     <script src="scripts/_app/viewModel.js"></script>
     <script src="scripts/_app/app.js"></script>

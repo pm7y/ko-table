@@ -1,6 +1,30 @@
 ﻿/*global $: true, ko: true */
-ko.bindingHandlers.koTable = {
-    init: function (tableElement, valueAccessor, allBindings, viewModel) {
+/*
+ * TODO: selectable rows
+ * TODO: highlight rows
+ * TODO: edit data
+ * TODO: expandable rows
+ * TODO: mapped/lookup columns
+ * TODO: delete row(s)
+ * TODO: re-order/hide columns
+ * TODO: group by column
+ * TODO: export data
+ * TODO: computed columns
+ * 
+ */
+ko.bindingHandlers.koTable = new (function () {
+    var self = this;
+
+    self.init = function (tableElement, valueAccessor, allBindings, viewModel) {
+        /*
+        koTable: { 
+        pageSize: 10, 
+        items: [],
+        showSearch: false, 
+        rowsClickable: true, 
+        rowClickedCallback: rowClicked 
+        }
+        */
         var params = valueAccessor();
         var table = $(tableElement);
 
@@ -9,8 +33,47 @@ ko.bindingHandlers.koTable = {
 
         var rowsClickable = params.rowsClickable !== null ? params.rowsClickable : params.rowClickedCallback !== null || false;
         var rowClickedCallback = params.rowClickedCallback;
+        var showSearch = params.showSearch === true ? true : false;
 
-        var kt = new KnockoutTable(params.pageSize, "id", "asc", rowClickedCallback, rowsClickable);
+        //$(document).ajaxStart(function () {
+        //    waitStartCallback();
+        //});
+
+        $(document).ajaxStop(function () {
+            waitEndCallback();
+        });
+
+        var waitStartCallback = function() {
+            if (!table.prev('.ko-spinner-row').length) {
+                var spinner = $("<div class=\"ko-spinner-row\"><span class=\"glyphicon glyphicon-refresh fa-spin\" style=\"display: inline-block; -webkit-animation: fa-spin 2s infinite linear; animation: fa-spin 2s infinite linear;\"></span></div>");
+
+                spinner.css({
+                    'z-index': 8347858543,
+                    'position': 'absolute',
+                    'top': table.position().top,
+                    'left': table.position().left + 'px',
+                    'font-size': Math.min(26, (table.height() / 3)) + 'px',
+                    'line-height': table.height() + 'px',
+                    'width': table.width() + 'px',
+                    'height': table.height() + 'px',
+                    'background-color': 'white',
+                    'opacity': '0.9'
+                });
+                spinner.hide();
+
+                table.before(spinner);
+                spinner.show();
+
+                table.prop('disabled', true);
+                table.prop('readonly', true);
+            }
+        };
+
+        var waitEndCallback = function() {
+            table.prev('.ko-spinner-row').remove();
+        };
+
+        var kt = new KnockoutTable(params.pageSize, "id", "asc", rowClickedCallback, rowsClickable, waitStartCallback, waitEndCallback);
         params.items = params.items || [];
         kt.setItems(params.items);
 
@@ -21,6 +84,8 @@ ko.bindingHandlers.koTable = {
             viewModel[tableId] = {};
             tableViewModel = $.extend(viewModel[tableId], kt);
         }
+
+        tableViewModel.onInit.call();
 
         tableViewModel.onRowsClickableChanged(function (evt) {
             tbody.css("cursor", "default");
@@ -95,35 +160,42 @@ ko.bindingHandlers.koTable = {
                 .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0, 'text-align': 'left' }).attr("colspan", 100);
         });
 
-        var searchInputTimeout;
+        if (showSearch) {
+            var searchInputTimeout;
 
-        $.each(table.find(".ko-table-search"), function (i, o) {
-            $(o).addClass("input-group").css({ "width": "100%" }).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
-                    "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" />"
-            )
-                .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100);
-        });
+            $.each(table.find(".ko-table-search"), function (i, o) {
+                $(o).addClass("input-group").css({ "width": "100%" }).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
+                        "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" />"
+                    )
+                    .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100);
+            });
 
-        $(".ko-table-search input").on("input", function (evt) {
-            clearTimeout(searchInputTimeout);
-            searchInputTimeout = setTimeout(function () {
-                var searchText = $(evt.target).val();
-                tableViewModel.setRowFilter(searchText);
-            }, 250);
-        });
+            $(".ko-table-search input").on("input", function (evt) {
+                clearTimeout(searchInputTimeout);
+                searchInputTimeout = setTimeout(function () {
+                    var searchText = $(evt.target).val();
+                    tableViewModel.setRowFilter(searchText);
+                }, 250);
+            });
+        } else {
+            table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
+        }
+    };
 
-        tableViewModel.onInit.call();
-        //console.log(['init', tableElement, params, bindings, viewModel, bindingContext]);
-    }
-};
+})();
 
 var KnockoutTable = (function () {
 
-    function knockoutTable(pageSize, initialSortProperty, initialSortDirection, rowClickedCallback, rowsClickable) {
+    function knockoutTable(pageSize, initialSortProperty, initialSortDirection, rowClickedCallback, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
         var self = this;
         var maxPagesToShowInPaginator = 5;
         var defaultPageSize = 10;
-        var eventTypes = { onRowClicked: "onRowClicked", onRowsClickableChanged: "onRowsClickableChanged" };
+        var eventTypes = {
+            onWaitStart: "onWaitStart",
+            onWaitEnd: "onWaitEnd",
+            onRowClicked: "onRowClicked",
+            onRowsClickableChanged: "onRowsClickableChanged"
+        };
 
         var _items = ko.observableArray();
         var internalSortParams = ko.observable({ 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || "asc")).toLowerCase() });
@@ -268,7 +340,14 @@ var KnockoutTable = (function () {
             self.currentPage(0);
         };
 
-        self.setItems = function (objects) {
+        self.setItems = function (input) {
+            self.clearItems();
+
+            var objects = input;
+            if ((typeof input) === "function") {
+                objects = input.apply(null, Array.prototype.slice.call(arguments, 1));
+            }
+
             objects = objects || [];
             if (ko.mapping) {
                 var oa = ko.utils.arrayMap(objects, function (item) {
@@ -277,6 +356,7 @@ var KnockoutTable = (function () {
                 items(oa);
             }
             items(objects);
+
         };
 
         self.gotoNextPage = function () {
@@ -350,13 +430,21 @@ var KnockoutTable = (function () {
         var internalListeners = {};
 
         self.onRowClicked = function (listener) {
-            addListener(eventTypes.onRowClicked, listener);
+            addEventHandler(eventTypes.onRowClicked, listener);
         };
         self.onRowsClickableChanged = function (listener) {
-            addListener(eventTypes.onRowsClickableChanged, listener);
+            addEventHandler(eventTypes.onRowsClickableChanged, listener);
         };
 
-        var addListener = function (type, listener) {
+        self.waitStart = function () {
+            trigger(eventTypes.onWaitStart);
+        };
+
+        self.waitEnd = function () {
+            trigger(eventTypes.onWaitEnd);
+        };
+
+        var addEventHandler = function (type, listener) {
             if (typeof internalListeners[type] === "undefined") {
                 internalListeners[type] = [];
             }
@@ -373,6 +461,7 @@ var KnockoutTable = (function () {
                     }
                 });
             }
+
 
             if (!alreadyExists) {
                 internalListeners[type].push(listener);
@@ -411,6 +500,9 @@ var KnockoutTable = (function () {
                 }
             }
         };
+
+        addEventHandler(eventTypes.onWaitStart, onWaitStartCallback);
+        addEventHandler(eventTypes.onWaitEnd, onWaitEndCallback);
     }
 
     return knockoutTable;
