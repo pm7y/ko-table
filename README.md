@@ -7,7 +7,7 @@ There is a demo page in the src which has a fairly expansive example of usage. I
 Here is an example of what it looks like with a bog standard, bootstrap styled, table. 
 To achieve this refer to the html and javascript below.
 
-![An example table](./example_table.png "An example table")
+![An example table](/../artefacts/example_table.png "An example table")
 
 #### HTML ####
 The key thing to notice here is the ***koTable*** binding on the table element. The koTable binding will extend the viewModel object adding the necessary functions and fields required to support paging and sorting.
