@@ -1,35 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Http;
 
 public class DataController : ApiController
 {
-    private static readonly PersonRepository _personRepository = new PersonRepository();
-
+    private static readonly PersonRepository Repository = new PersonRepository();
     // GET api/<controller>
     public IEnumerable<Person> Get()
     {
         Thread.Sleep(new Random().Next(0, 2000));
-        return _personRepository.Get();
+        return Repository.Get();
     }
 
     // GET api/<controller>/5
     public Person Get(int id)
     {
-        return _personRepository.Get(id);
+        return Repository.Get(id);
     }
 
     // POST api/<controller>
     public void Post([FromBody] Person value)
     {
-        _personRepository.Update(value);
+        Repository.InsertOrUpdate(value);
     }
 
     // DELETE api/<controller>/5
     public void Delete(int id)
     {
-        _personRepository.Delete(id);
+        Repository.Delete(id);
     }
 }

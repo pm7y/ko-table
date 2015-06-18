@@ -1,11 +1,30 @@
-﻿public class Person
+﻿using System;
+using Newtonsoft.Json;
+
+public class Person
 {
-    public int id { get; set; }
-    public bool isActive { get; set; }
-    public int age { get; set; }
-    public string name { get; set; }
-    public string gender { get; set; }
-    public string company { get; set; }
-    public string email { get; set; }
-    public string phone { get; set; }
+    [JsonProperty("id")]
+    public int PersonId { get; set; }
+
+    [JsonProperty("isActive")]
+    public bool Active { get; set; }
+
+    [JsonProperty("age")]
+    public int Age { get; set; }
+
+    [JsonProperty("name")]
+    public string Fullname { get; set; }
+
+    [JsonProperty("gender")]
+    [JsonIgnoreAttribute]
+    public string Gender { get; set; }
+
+    [JsonProperty("company")]
+    public string Company { get; set; }
+
+    [JsonProperty("email")]
+    public string Email { get; set; }
+
+    [JsonProperty("phone")]
+    public string PhoneNumber { get; set; }
 }

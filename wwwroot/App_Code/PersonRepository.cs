@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 
@@ -17,7 +15,7 @@ public class PersonRepository : IRepository<Person>
         var jsonFile = HttpContext.Current.Server.MapPath("~/_dataSource.json");
         var jsonText = File.ReadAllText(jsonFile);
 
-        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText).OrderBy(p => p.id);
+        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText).OrderBy(p => p.PersonId);
 
         _allPeople.AddRange(people);
     }
@@ -34,20 +32,12 @@ public class PersonRepository : IRepository<Person>
 
     public Person Get(int id)
     {
-        return _allPeople.FirstOrDefault(p => p.id == id);
+        return _allPeople.FirstOrDefault(p => p.PersonId == id);
     }
 
-    public void Insert(Person entry)
+    public void InsertOrUpdate(Person entry)
     {
-        if (_allPeople.Contains(entry))
-        {
-            _allPeople.Add(entry);
-        }
-    }
-
-    public void Update(Person entry)
-    {
-        var match = _allPeople.FirstOrDefault(p => p.id == entry.id);
+        var match = _allPeople.FirstOrDefault(p => p.PersonId == entry.PersonId);
 
         if (_allPeople.Contains(match))
         {
@@ -59,20 +49,12 @@ public class PersonRepository : IRepository<Person>
 
     public void Delete(int id)
     {
-        var match = _allPeople.FirstOrDefault(p => p.id == id);
+        var match = _allPeople.FirstOrDefault(p => p.PersonId == id);
 
         if (_allPeople.Contains(match))
         {
             _allPeople.Remove(match);
         }
-    }
-
-    public void Save()
-    {
-        var jsonText = JsonConvert.SerializeObject(_allPeople);
-
-        var jsonFile = HttpContext.Current.Server.MapPath("~/js/_data.js");
-        File.WriteAllText(jsonFile, jsonText);
     }
 
     public void Dispose()

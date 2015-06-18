@@ -8,6 +8,8 @@ var ViewModel = (function () {
         self.waitStart();
 
         $.getJSON("api/Data", null, function (data) {
+
+            console.log(data);
             // load the data we received
             self.setItems(data);
 
