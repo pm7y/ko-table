@@ -16,7 +16,7 @@ The tbody has a foreach binding bound to the ***pagedItems*** collection. But pa
 
 Notice also the ***ko-table-pagination*** class on the div in the table footer. Any element in the table with this class will be rendered as a pagination control (as in the screenshot above).
 
-```
+```html
 <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10}">
 	<thead>
 	    <tr>
