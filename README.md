@@ -112,3 +112,21 @@ You'll need to reference the following things in your web page:
 - [jquery.color](https://github.com/jquery/jquery-color): not strictly *required* but it'll look nicer if you do.
 - [bootstrap](https://github.com/twbs/bootstrap): also, not strictly required but bootstrap tables look nice!
 
+
+## Installation ##
+
+## Nuget ##
+
+Installation is easy from nuget: 
+
+```
+PM> Install-Package koTable
+```
+
+## Manually ##
+
+Assuming you've got the other requirements setup (see above) all you need to do is include a reference to either *[koTable.js](./wwwroot/scripts/_app/koTable.js)* or *[koTable.min.js](./wwwroot/scripts/_app/koTable.min.js)*
+
+```html
+<script src="Scripts/koTable.min.js"></script>
+```
