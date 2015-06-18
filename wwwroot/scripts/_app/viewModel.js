@@ -3,18 +3,11 @@
 var ViewModel = (function () {
     var self = this;
 
-    self.rowClicked = function (tr, data) {
-        toastr.info(data.name, "You clicked a row!");
-    };
-
-    self.toggleRowClickability = function (data, evt) {
-        self.rowsClickable($(evt.target).prop("checked") === true);
-
-        return true;
-    };
-
     self.loadAllData = function () {
-        sw.elapsed('loading data...');
+        // signal that we are about to
+        // do something that might take a while.
+        // this will change the bottom border color
+        // of the first row to orangey.
         self.waitStart();
 
         $.ajax({
@@ -22,24 +15,31 @@ var ViewModel = (function () {
             type: "GET",
             dataType: "json",
             success: function (data) {
-                sw.elapsed('data loaded...');
-
                 self.setItems(data);
 
-               // self.waitEnd();
+                // signal that the potentially long running thing has finished.
+                // this will change the bottom border color
+                // of the first row to back to it's original color.
+                self.waitEnd();
             }
         });
     };
 
+    /*
+    onInit is automcatically invoked when the koTable binding 
+    has finished configuraing itself.
+    */
     self.onInit = function () {
         sw.elapsed('onInit');
 
+        // load the data form the server
         self.loadAllData();
 
+        // hook up handler for when a row is clicked
         self.onRowClicked(function (evt) {
             console.log(evt);
+            toastr.info(evt.data.model.name, "You clicked a row!");
         });
     };
 
-    
 });

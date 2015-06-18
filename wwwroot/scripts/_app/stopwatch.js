@@ -23,7 +23,7 @@
 
         stopMilliseconds = new Date().getTime();
 
-        console.log("Stopwatch [" + name + "] ELAPSED [" + _self.elapsedMilliseconds() + "]: " + msg);
+        console.log("Stopwatch [" + name + "] ELAPSED [" + _self.elapsedMilliseconds() + "ms]: " + msg);
     };
 
     _self.elapsedMilliseconds = function() {
@@ -32,4 +32,4 @@
 });
 
 var sw = new Stopwatch('koTable');
-sw.start('.');
+sw.start();

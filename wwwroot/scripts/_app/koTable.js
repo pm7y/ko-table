@@ -9,20 +9,18 @@
  * TODO: re-order/hide columns
  * TODO: group by column
  * TODO: export data
- * TODO: computed columns
  * 
  */
-ko.bindingHandlers.koTable = new (function () {
+ko.bindingHandlers.koTable = new (function() {
     var self = this;
 
-    self.init = function (tableElement, valueAccessor, allBindings, viewModel) {
+    self.init = function(tableElement, valueAccessor, allBindings, viewModel) {
         /*
         koTable: { 
         pageSize: 10, 
         items: [],
         showSearch: false, 
-        rowsClickable: true, 
-        rowClickedCallback: rowClicked 
+        rowsClickable: true
         }
         */
         var params = valueAccessor();
@@ -31,49 +29,55 @@ ko.bindingHandlers.koTable = new (function () {
         var tbody = $(tableElement).find("tbody");
         var tableId = $.trim((table.attr("id") || table.attr("name"))).replace("-", "").replace(".", "").replace("_", "");
 
-        var rowsClickable = params.rowsClickable !== null ? params.rowsClickable : params.rowClickedCallback !== null || false;
-        var rowClickedCallback = params.rowClickedCallback;
+        var rowsClickable = params.rowsClickable !== null ? params.rowsClickable : false;
         var showSearch = params.showSearch === true ? true : false;
 
         //$(document).ajaxStart(function () {
         //    waitStartCallback();
         //});
 
-        $(document).ajaxStop(function () {
+        $(document).ajaxStop(function() {
             waitEndCallback();
         });
 
+        var firstRowBottomWidth, firstRowBottomColor, firstRowBottomStyle, firstRowBottomInterval, altColor;
+
         var waitStartCallback = function() {
-            if (!table.prev('.ko-spinner-row').length) {
-                var spinner = $("<div class=\"ko-spinner-row\"><span class=\"glyphicon glyphicon-refresh fa-spin\" style=\"display: inline-block; -webkit-animation: fa-spin 2s infinite linear; animation: fa-spin 2s infinite linear;\"></span></div>");
 
-                spinner.css({
-                    'z-index': 8347858543,
-                    'position': 'absolute',
-                    'top': table.position().top,
-                    'left': table.position().left + 'px',
-                    'font-size': Math.min(26, (table.height() / 3)) + 'px',
-                    'line-height': table.height() + 'px',
-                    'width': table.width() + 'px',
-                    'height': table.height() + 'px',
-                    'background-color': 'white',
-                    'opacity': '0.9'
-                });
-                spinner.hide();
+            firstRowBottomWidth = table.find("tr:first th").css("border-bottom-width");
+            firstRowBottomColor = table.find("tr:first th").css("border-bottom-color");
+            firstRowBottomStyle = table.find("tr:first th").css("border-bottom-style");
 
-                table.before(spinner);
-                spinner.show();
+            if ($.cssHooks.borderColor) {
+                table.find("tr:first th").animate({ 'borderBottomColor': "#FF3300" });
+                table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-style': firstRowBottomStyle || "solid" });
 
-                table.prop('disabled', true);
-                table.prop('readonly', true);
+                firstRowBottomInterval = setInterval(function() {
+                    if (altColor) {
+                        table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null);
+                        altColor = false;
+                    } else {
+                        table.find("tr:first th").animate({ 'borderBottomColor': "#FF3300" }, null, null);
+                        altColor = true;
+                    }
+                }, 500);
+            } else {
+                table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-color': "#FF3300", 'border-bottom-style': firstRowBottomStyle || "solid" });
             }
         };
 
         var waitEndCallback = function() {
-            table.prev('.ko-spinner-row').remove();
+            if ($.cssHooks.borderColor) {
+                clearInterval(firstRowBottomInterval);
+                table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function() {
+                    table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-style': firstRowBottomStyle });
+                });
+            } else {
+                table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-color': firstRowBottomColor, 'border-bottom-style': firstRowBottomStyle });
+            }
         };
 
-        var kt = new KnockoutTable(params.pageSize, "id", "asc", rowClickedCallback, rowsClickable, waitStartCallback, waitEndCallback);
+        var kt = new KnockoutTable(params.pageSize, "id", "asc", rowsClickable, waitStartCallback, waitEndCallback);
         params.items = params.items || [];
         kt.setItems(params.items);
 
@@ -87,11 +91,11 @@ ko.bindingHandlers.koTable = new (function () {
 
         tableViewModel.onInit.call();
 
-        tableViewModel.onRowsClickableChanged(function (evt) {
+        tableViewModel.onRowsClickableChanged(function(evt) {
             tbody.css("cursor", "default");
             tbody.off("click");
 
-            if (evt && evt.data === true && rowClickedCallback && tbody.length) {
+            if (evt && evt.data === true && tbody.length) {
                 tbody.css("cursor", "pointer");
                 tbody.click(tableViewModel.rowClickedCallback);
             }
@@ -104,14 +108,16 @@ ko.bindingHandlers.koTable = new (function () {
             tbody.css("cursor", "pointer");
         }
 
-        if (rowClickedCallback && tbody.length) {
-            tbody.click(tableViewModel.rowClickedCallback);
+        if (tbody.length) {
+            tbody.click(function(evt) {
+                tableViewModel.rowClickedCallback(evt);
+            });
         } else if (!tbody.length) {
             $.error("The table has no tbody element so row clicking will not be enabled!");
         }
 
-        var descendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-bottom small\" aria-hidden=\"true\" style=\"margin-right:5px;\"></span>";
-        var ascendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-top small\" aria-hidden=\"true\" style=\"margin-right:5px;\"></span>";
+        var descendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-bottom\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
+        var ascendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-top\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
 
         var sortableHeadings = $("[data-sort-property]");
         sortableHeadings.css("cursor", "pointer");
@@ -126,7 +132,7 @@ ko.bindingHandlers.koTable = new (function () {
             currentSortHeading.prepend(ascendingIconHtml);
         }
 
-        sortableHeadings.click(function () {
+        sortableHeadings.click(function() {
             sortableHeadings.find(".sort-icon").remove();
 
             var sortProp = tableViewModel.sortProperty();
@@ -147,7 +153,7 @@ ko.bindingHandlers.koTable = new (function () {
 
         });
 
-        $.each(table.find(".ko-table-pagination"), function (i, o) {
+        $.each(table.find(".ko-table-pagination"), function(i, o) {
             $(o).html("<span data-bind=\"if: !hasRows()\">There are no records to show at the moment :(</span><ul class=\"pagination\" data-bind=\"if: paginationRequired()\" >" +
                     "<li data-bind=\"css: { disabled: isFirstPage }\"><a href=\"#\" data-bind=\"click: gotoFirstPage\"><span class=\"glyphicon glyphicon-step-backward\" aria-hidden=\"true\"></span></a></li>" +
                     "<li data-bind=\"css: { disabled: isFirstPage }\"><a href=\"#\" data-bind=\"click: gotoPreviousPage\"><span class=\"glyphicon glyphicon-backward\" aria-hidden=\"true\"></span></a></li>" +
@@ -157,22 +163,22 @@ ko.bindingHandlers.koTable = new (function () {
                     "<li data-bind=\"css: { disabled: isLastPage }\"><a href=\"#\" data-bind=\"click: gotoNextPage\"><span class=\"glyphicon glyphicon-forward\" aria-hidden=\"true\"></span></a></li>" +
                     "<li data-bind=\"css: { disabled: isLastPage }\"><a href=\"#\" data-bind=\"click: gotoLastPage\"><span class=\"glyphicon glyphicon-fast-forward\" aria-hidden=\"true\"></span></a></li>" +
                     "</ul>")
-                .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0, 'text-align': 'left' }).attr("colspan", 100);
+                .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0, 'text-align': "left" }).attr("colspan", 100);
         });
 
         if (showSearch) {
             var searchInputTimeout;
 
-            $.each(table.find(".ko-table-search"), function (i, o) {
+            $.each(table.find(".ko-table-search"), function(i, o) {
                 $(o).addClass("input-group").css({ "width": "100%" }).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
                         "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" />"
                     )
-                    .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100);
+                    .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr").attr("data-bind", "if: hasRows()");
             });
 
-            $(".ko-table-search input").on("input", function (evt) {
+            $(".ko-table-search input").on("input", function(evt) {
                 clearTimeout(searchInputTimeout);
-                searchInputTimeout = setTimeout(function () {
+                searchInputTimeout = setTimeout(function() {
                     var searchText = $(evt.target).val();
                     tableViewModel.setRowFilter(searchText);
                 }, 250);
@@ -184,9 +190,9 @@ ko.bindingHandlers.koTable = new (function () {
 
 })();
 
-var KnockoutTable = (function () {
+var KnockoutTable = (function() {
 
-    function knockoutTable(pageSize, initialSortProperty, initialSortDirection, rowClickedCallback, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
+    function knockoutTable(pageSize, initialSortProperty, initialSortDirection, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
         var self = this;
         var maxPagesToShowInPaginator = 5;
         var defaultPageSize = 10;
@@ -205,7 +211,7 @@ var KnockoutTable = (function () {
 
         self.currentPage = ko.observable(0);
 
-        self.setRowFilter = function (searchString) {
+        self.setRowFilter = function(searchString) {
             if ($.trim(searchString.toString()).length >= 2) {
                 internalRowFilter(searchString.toString().toLowerCase());
             } else {
@@ -214,10 +220,10 @@ var KnockoutTable = (function () {
         };
 
         var items = ko.pureComputed({
-            read: function () {
+            read: function() {
                 if (internalRowFilter() && internalRowFilter().length) {
                     var filteredItems = [];
-                    $.each(_items(), function (i, o) {
+                    $.each(_items(), function(i, o) {
                         for (var propName in o) {
                             if (o.hasOwnProperty(propName)) {
                                 var propVal = o[propName].toString().toLowerCase();
@@ -233,35 +239,32 @@ var KnockoutTable = (function () {
                 }
                 return _items();
             },
-            write: function (value) {
+            write: function(value) {
                 _items(value);
             }
         }, self);
 
-        self.rowClickedCallback = function (evt) {
-            if (rowClickedCallback && internalRowsClickable()) {
+        self.rowClickedCallback = function(evt) {
+            if (internalRowsClickable()) {
                 var clickedTr = $(evt.target).closest("tr");
                 var data = ko.dataFor(clickedTr.get(0));
 
-                rowClickedCallback(clickedTr, data);
                 trigger(eventTypes.onRowClicked, { tr: clickedTr, model: data });
             }
         };
 
-        self.rowClickedCallbackExists = ko.pureComputed({
-            read: function () {
-                return rowClickedCallback !== null;
-            }
-        }, self);
-
         self.rowsClickable = ko.computed({
-            read: function () {
+            read: function() {
                 return internalRowsClickable();
             },
-            write: function (value) {
-
+            write: function(value) {
                 var currentValue = internalRowsClickable();
                 var newValue = value === true ? true : false;
+
+                if (value !== false && !value) {
+                    newValue = newValue ? false : true;
+                }
+
                 if (currentValue !== newValue) {
                     trigger(eventTypes.onRowsClickableChanged, newValue);
                     internalRowsClickable(newValue);
@@ -270,10 +273,10 @@ var KnockoutTable = (function () {
         }, self);
 
         self.pageSize = ko.computed({
-            read: function () {
+            read: function() {
                 return internalPageSize();
             },
-            write: function (value) {
+            write: function(value) {
                 var currentValue = internalPageSize();
                 var newValue = parseInt(value);
 
@@ -285,10 +288,10 @@ var KnockoutTable = (function () {
         }, self);
 
         self.sortProperty = ko.computed({
-            read: function () {
+            read: function() {
                 return internalSortParams().sortProperty;
             },
-            write: function (value) {
+            write: function(value) {
                 var currentValue = internalSortParams().sortProperty;
                 var newValue = $.trim(value);
 
@@ -302,10 +305,10 @@ var KnockoutTable = (function () {
         }, self);
 
         self.sortDirection = ko.pureComputed({
-            read: function () {
+            read: function() {
                 return internalSortParams().sortDirection;
             },
-            write: function (value) {
+            write: function(value) {
                 var currentValue = internalSortParams().sortDirection;
                 var newValue = $.trim((value || "asc")).toLowerCase();
 
@@ -317,7 +320,7 @@ var KnockoutTable = (function () {
             }
         }, self);
 
-        self.toggleSortDirection = function () {
+        self.toggleSortDirection = function() {
             var currentSortDir = self.sortDirection();
             var newSortDir = currentSortDir === "asc" ? "desc" : "asc";
             self.sortDirection(newSortDir);
@@ -335,12 +338,12 @@ var KnockoutTable = (function () {
             }
         }
 
-        self.clearItems = function () {
+        self.clearItems = function() {
             items([]);
             self.currentPage(0);
         };
 
-        self.setItems = function (input) {
+        self.setItems = function(input) {
             self.clearItems();
 
             var objects = input;
@@ -350,7 +353,7 @@ var KnockoutTable = (function () {
 
             objects = objects || [];
             if (ko.mapping) {
-                var oa = ko.utils.arrayMap(objects, function (item) {
+                var oa = ko.utils.arrayMap(objects, function(item) {
                     return ko.mapping.fromJS(item);
                 });
                 items(oa);
@@ -359,41 +362,41 @@ var KnockoutTable = (function () {
 
         };
 
-        self.gotoNextPage = function () {
+        self.gotoNextPage = function() {
             if (self.currentPage() < (self.pageCount() - 1)) {
                 self.currentPage(self.currentPage() + 1);
             }
         };
-        self.gotoPreviousPage = function () {
+        self.gotoPreviousPage = function() {
             if (self.currentPage() > 0) {
                 self.currentPage(self.currentPage() - 1);
             }
         };
-        self.gotoLastPage = function () {
+        self.gotoLastPage = function() {
             self.currentPage(self.pageCount() - 1);
         };
-        self.gotoFirstPage = function () {
+        self.gotoFirstPage = function() {
             self.currentPage(0);
         };
-        self.gotoPage = function (page) {
+        self.gotoPage = function(page) {
             var newPage = page || 0;
             if (newPage !== self.currentPage()) {
                 self.currentPage(newPage);
             }
         };
-        self.isFirstPage = ko.pureComputed(function () {
+        self.isFirstPage = ko.pureComputed(function() {
             return self.currentPage() === 0;
         });
 
-        self.isLastPage = ko.pureComputed(function () {
+        self.isLastPage = ko.pureComputed(function() {
             return self.currentPage() === (self.pageCount() - 1);
         });
 
-        self.pageCount = ko.pureComputed(function () {
+        self.pageCount = ko.pureComputed(function() {
             return Math.ceil((items().length / internalPageSize()) || 1);
         });
 
-        self.paginationIndexes = ko.pureComputed(function () {
+        self.paginationIndexes = ko.pureComputed(function() {
             var radius = (maxPagesToShowInPaginator - 1) / 2;
 
             var last = Math.min(Math.max(self.currentPage() + radius, self.currentPage() + maxPagesToShowInPaginator), self.pageCount());
@@ -407,7 +410,7 @@ var KnockoutTable = (function () {
             return indexes;
         });
 
-        self.pagedItems = ko.pureComputed(function () {
+        self.pagedItems = ko.pureComputed(function() {
             var first = internalPageSize() * self.currentPage();
             var last = first + internalPageSize();
 
@@ -415,43 +418,43 @@ var KnockoutTable = (function () {
             return pagedItems;
         });
 
-        self.hasRows = ko.pureComputed(function () {
+        self.hasRows = ko.pureComputed(function() {
             return items() && items().length > 0;
         }, self);
 
-        self.paginationRequired = ko.pureComputed(function () {
+        self.paginationRequired = ko.pureComputed(function() {
             return self.hasRows() && self.pageCount() > 1;
         }, self);
 
-        self.rowCount = ko.pureComputed(function () {
+        self.rowCount = ko.pureComputed(function() {
             return self.hasRows() ? items().length : 0;
         });
 
         var internalListeners = {};
 
-        self.onRowClicked = function (listener) {
+        self.onRowClicked = function(listener) {
             addEventHandler(eventTypes.onRowClicked, listener);
         };
-        self.onRowsClickableChanged = function (listener) {
+        self.onRowsClickableChanged = function(listener) {
             addEventHandler(eventTypes.onRowsClickableChanged, listener);
         };
 
-        self.waitStart = function () {
+        self.waitStart = function() {
             trigger(eventTypes.onWaitStart);
         };
 
-        self.waitEnd = function () {
+        self.waitEnd = function() {
             trigger(eventTypes.onWaitEnd);
         };
 
-        var addEventHandler = function (type, listener) {
+        var addEventHandler = function(type, listener) {
             if (typeof internalListeners[type] === "undefined") {
                 internalListeners[type] = [];
             }
 
             var alreadyExists = false;
             if (internalListeners[type] && internalListeners[type].length > 0) {
-                $.each(internalListeners[type], function (i, l) {
+                $.each(internalListeners[type], function(i, l) {
                     if (l.name && l.name.length && listener.name && listener.name.length) {
                         alreadyExists = l === listener;
                         return !alreadyExists;
@@ -462,13 +465,12 @@ var KnockoutTable = (function () {
                 });
             }
 
-
             if (!alreadyExists) {
                 internalListeners[type].push(listener);
             }
         };
 
-        var trigger = function (event, obj) {
+        var trigger = function(event, obj) {
             if (typeof event === "string") {
                 event = { type: event };
             }
@@ -489,7 +491,7 @@ var KnockoutTable = (function () {
             }
         };
 
-        self.removeListener = function (type, listener) {
+        self.removeListener = function(type, listener) {
             if (internalListeners[type] instanceof Array) {
                 var listeners = internalListeners[type];
                 for (var i = 0, len = listeners.length; i < len; i++) {
