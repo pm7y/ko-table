@@ -55,25 +55,60 @@ Notice also the ***ko-table-pagination*** class on the div in the table footer. 
 Since the koTable binding extends the viewModel object all you really need to do to make the magic happen is to call self.setItems and pass your object array.
 
 ```javascript
-var viewModel = function () {
+var ViewModel = (function () {
     var self = this;
 
-    self.loadAllData = function getData() {
-        $.ajax({
-            url: 'api/Data',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                self.setItems(data);
-            }
+    self.loadAllData = function () {
+        // signal start of something that might take a while
+        self.waitStart();
+
+        $.getJSON("api/Data", null, function (data) {
+            // load the data we received
+            self.setItems(data);
+
+            // signal end
+            self.waitEnd();
+        });
+    }
+
+    // onInit is automcatically invoked when koTable is loaded.
+    self.onInit = function () {
+        sw.elapsed('onInit');
+
+        // load the data form the server
+        self.loadAllData();
+
+        // hook up handler for when a row is clicked
+        self.onRowClicked(function (evt) {
+            console.log(evt);
         });
     };
-
-    self.loadAllData();
-};
+});
 
 $(document).ready(function () {
     ko.applyBindings(new viewModel());
 });
 
 ```
+## Options ##
+
+These are the options you can pass to the koTable binding:
+
+- **pageSize**: the number of rows per page. Default is all (*i.e.* no paging).
+- **showSearch**: show a search box in place of any ***ko-table-search*** classes. Default is false.
+- **rowsClickable**: make rows clickable and raise an event when they are. Default: true.
+- **allowSort**: allows the grid to be sorted by column.
+- **initialSortProperty**: the name of the property to initially sort by.
+- **initialSortDirection**: the initial sort directon. Default is 'asc'.
+
+## Requirements ##
+
+You'll need to reference the following things in your web page: 
+
+- [jquery](https://github.com/jquery/jquery)
+- [knockoutjs](https://github.com/knockout/knockout)
+
+### Optional (kind of) ###
+- [jquery.color](https://github.com/jquery/jquery-color): not strictly *required* but it'll look nicer if you do.
+- [bootstrap](https://github.com/twbs/bootstrap): also, not strictly required but bootstrap tables look nice!
+

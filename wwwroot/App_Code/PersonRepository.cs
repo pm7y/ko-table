@@ -17,7 +17,7 @@ public class PersonRepository : IRepository<Person>
         var jsonFile = HttpContext.Current.Server.MapPath("~/_dataSource.json");
         var jsonText = File.ReadAllText(jsonFile);
 
-        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText);
+        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText).OrderBy(p => p.id);
 
         _allPeople.AddRange(people);
     }

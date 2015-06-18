@@ -4,31 +4,19 @@ var ViewModel = (function () {
     var self = this;
 
     self.loadAllData = function () {
-        // signal that we are about to
-        // do something that might take a while.
-        // this will change the bottom border color
-        // of the first row to orangey.
+        // signal start of something that might take a while
         self.waitStart();
 
-        $.ajax({
-            url: "api/Data",
-            type: "GET",
-            dataType: "json",
-            success: function (data) {
-                self.setItems(data);
+        $.getJSON("api/Data", null, function (data) {
+            // load the data we received
+            self.setItems(data);
 
-                // signal that the potentially long running thing has finished.
-                // this will change the bottom border color
-                // of the first row to back to it's original color.
-                self.waitEnd();
-            }
+            // signal end
+            self.waitEnd();
         });
-    };
+    }
 
-    /*
-    onInit is automcatically invoked when the koTable binding 
-    has finished configuraing itself.
-    */
+    // onInit is automcatically invoked when koTable is loaded.
     self.onInit = function () {
         sw.elapsed('onInit');
 

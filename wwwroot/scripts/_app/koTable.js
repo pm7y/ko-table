@@ -20,7 +20,10 @@ ko.bindingHandlers.koTable = new (function() {
         pageSize: 10, 
         items: [],
         showSearch: false, 
-        rowsClickable: true
+        rowsClickable: true,
+        allowSort: true,
+        initialSortProperty: 'id',
+        initialSortDirection: 'desc'
         }
         */
         var params = valueAccessor();
@@ -29,8 +32,12 @@ ko.bindingHandlers.koTable = new (function() {
         var tbody = $(tableElement).find("tbody");
         var tableId = $.trim((table.attr("id") || table.attr("name"))).replace("-", "").replace(".", "").replace("_", "");
 
-        var rowsClickable = params.rowsClickable !== null ? params.rowsClickable : false;
+        var pageSize = params.pageSize || -1;
+        var rowsClickable = params.rowsClickable != null ? params.rowsClickable : false;
         var showSearch = params.showSearch === true ? true : false;
+        var allowSort = params.allowSort == null ? true : params.allowSort;
+        var initialSortProperty = params.initialSortProperty;
+        var initialSortDirection = params.initialSortDirection === "asc" ? "asc" : "desc";
 
         //$(document).ajaxStart(function () {
         //    waitStartCallback();
@@ -43,7 +50,6 @@ ko.bindingHandlers.koTable = new (function() {
         var firstRowBottomWidth, firstRowBottomColor, firstRowBottomStyle, firstRowBottomInterval, altColor;
 
         var waitStartCallback = function() {
-
             firstRowBottomWidth = table.find("tr:first th").css("border-bottom-width");
             firstRowBottomColor = table.find("tr:first th").css("border-bottom-color");
             firstRowBottomStyle = table.find("tr:first th").css("border-bottom-style");
@@ -77,9 +83,8 @@ ko.bindingHandlers.koTable = new (function() {
             }
         };
 
-        var kt = new KnockoutTable(params.pageSize, "id", "asc", rowsClickable, waitStartCallback, waitEndCallback);
-        params.items = params.items || [];
-        kt.setItems(params.items);
+        var kt = new KnockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable, waitStartCallback, waitEndCallback);
+        kt.setItems([]);
 
         var tableViewModel;
         if ($("table[data-bind*=koTable]").length === 1) {
@@ -116,42 +121,44 @@ ko.bindingHandlers.koTable = new (function() {
             $.error("The table has no tbody element so row clicking will not be enabled!");
         }
 
-        var descendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-bottom\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
-        var ascendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-top\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
+        if (allowSort) {
+            var descendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-bottom\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
+            var ascendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-top\" aria-hidden=\"true\" style=\"margin-right:5px; color:silver; font-size: 10px;\"></span>";
 
-        var sortableHeadings = $("[data-sort-property]");
-        sortableHeadings.css("cursor", "pointer");
+            var sortableHeadings = $("[data-sort-property]");
+            sortableHeadings.css("cursor", "pointer");
 
-        var currentSortDir = tableViewModel.sortDirection();
-        var currentSortProp = tableViewModel.sortProperty();
-        var currentSortHeading = $("[data-sort-property='" + currentSortProp + "']");
+            var currentSortDir = tableViewModel.sortDirection();
+            var currentSortProp = tableViewModel.sortProperty();
+            var currentSortHeading = $("[data-sort-property='" + currentSortProp + "']");
 
-        if (currentSortDir === "desc") {
-            currentSortHeading.prepend(descendingIconHtml);
-        } else {
-            currentSortHeading.prepend(ascendingIconHtml);
+            if (currentSortDir === "desc") {
+                currentSortHeading.prepend(descendingIconHtml);
+            } else {
+                currentSortHeading.prepend(ascendingIconHtml);
+            }
+
+            sortableHeadings.click(function() {
+                sortableHeadings.find(".sort-icon").remove();
+
+                var sortProp = tableViewModel.sortProperty();
+                var newSortProp = $(this).attr("data-sort-property");
+                var newSortDir = "asc";
+
+                if (sortProp === newSortProp) {
+                    newSortDir = tableViewModel.toggleSortDirection();
+                } else {
+                    tableViewModel.sortProperty(newSortProp);
+                }
+
+                if (newSortDir === "desc") {
+                    $(this).prepend(descendingIconHtml);
+                } else {
+                    $(this).prepend(ascendingIconHtml);
+                }
+
+            });
         }
-
-        sortableHeadings.click(function() {
-            sortableHeadings.find(".sort-icon").remove();
-
-            var sortProp = tableViewModel.sortProperty();
-            var newSortProp = $(this).attr("data-sort-property");
-            var newSortDir = "asc";
-
-            if (sortProp === newSortProp) {
-                newSortDir = tableViewModel.toggleSortDirection();
-            } else {
-                tableViewModel.sortProperty(newSortProp);
-            }
-
-            if (newSortDir === "desc") {
-                $(this).prepend(descendingIconHtml);
-            } else {
-                $(this).prepend(ascendingIconHtml);
-            }
-
-        });
 
         $.each(table.find(".ko-table-pagination"), function(i, o) {
             $(o).html("<span data-bind=\"if: !hasRows()\">There are no records to show at the moment :(</span><ul class=\"pagination\" data-bind=\"if: paginationRequired()\" >" +
@@ -167,21 +174,23 @@ ko.bindingHandlers.koTable = new (function() {
         });
 
         if (showSearch) {
+
             var searchInputTimeout;
 
             $.each(table.find(".ko-table-search"), function(i, o) {
-                $(o).addClass("input-group").css({ "width": "100%" }).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
-                        "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" />"
-                    )
-                    .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr").attr("data-bind", "if: hasRows()");
-            });
-
-            $(".ko-table-search input").on("input", function(evt) {
-                clearTimeout(searchInputTimeout);
-                searchInputTimeout = setTimeout(function() {
-                    var searchText = $(evt.target).val();
-                    tableViewModel.setRowFilter(searchText);
-                }, 250);
+                $(o).addClass("input-group").css({ "width": "100%" });
+                $(o).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
+                    "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" value=\"\" />"
+                );
+                $(o).find("input[type='text']").on("input", function(evt) {
+                    clearTimeout(searchInputTimeout);
+                    searchInputTimeout = setTimeout(function() {
+                        var searchText = $(evt.target).val();
+                        console.log(searchText);
+                        tableViewModel.setRowFilter(searchText);
+                    }, 250);
+                });
+                $(o).closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr"); //.attr("data-bind", "visible: hasRows()");
             });
         } else {
             table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
@@ -192,10 +201,9 @@ ko.bindingHandlers.koTable = new (function() {
 
 var KnockoutTable = (function() {
 
-    function knockoutTable(pageSize, initialSortProperty, initialSortDirection, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
+    function knockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
         var self = this;
         var maxPagesToShowInPaginator = 5;
-        var defaultPageSize = 10;
         var eventTypes = {
             onWaitStart: "onWaitStart",
             onWaitEnd: "onWaitEnd",
@@ -204,8 +212,8 @@ var KnockoutTable = (function() {
         };
 
         var _items = ko.observableArray();
-        var internalSortParams = ko.observable({ 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || "asc")).toLowerCase() });
-        var internalPageSize = ko.observable(pageSize && pageSize > 0 ? pageSize : defaultPageSize);
+        var internalSortParams = ko.observable({ 'allowSort': allowSort, 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || "asc")).toLowerCase() });
+        var internalPageSize = ko.observable(pageSize && pageSize > 0 ? pageSize : -1);
         var internalRowsClickable = ko.observable(rowsClickable === true);
         var internalRowFilter = ko.observable("");
 
@@ -393,7 +401,7 @@ var KnockoutTable = (function() {
         });
 
         self.pageCount = ko.pureComputed(function() {
-            return Math.ceil((items().length / internalPageSize()) || 1);
+            return Math.ceil(internalPageSize() > 0 ? (items().length / internalPageSize()) || 1 : 1);
         });
 
         self.paginationIndexes = ko.pureComputed(function() {
@@ -411,11 +419,14 @@ var KnockoutTable = (function() {
         });
 
         self.pagedItems = ko.pureComputed(function() {
-            var first = internalPageSize() * self.currentPage();
-            var last = first + internalPageSize();
+            var first = internalPageSize() > 0 ? internalPageSize() * self.currentPage() : 0;
+            var last = internalPageSize() > 0 ? first + internalPageSize() : self.rowCount();
 
-            var pagedItems = items().sort(objectSortComparer).slice(first, last);
-            return pagedItems;
+            if (self.sortProperty()) {
+                return items().sort(objectSortComparer).slice(first, last);
+            } else {
+                return items().slice(first, last);
+            }
         });
 
         self.hasRows = ko.pureComputed(function() {

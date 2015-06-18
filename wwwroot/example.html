@@ -4,12 +4,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>kn-table</title>
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     <link href="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" rel="stylesheet" type="text/css" />
     <link href="content/example.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-    <div class="container">
+    <div class="container" style="max-width: 790px;">
         <h3>Contact List</h3>
 
         <table>
@@ -18,13 +17,12 @@
             </tr>
         </table>
 
-        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, rowsClickable: true }">
+        <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, rowsClickable: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
             <thead>
                 <tr>
                     <th data-sort-property="id">Id</th>
                     <th data-sort-property="name">Name</th>
                     <th data-sort-property="age">Age</th>
-                    <th data-sort-property="gender">Gender</th>
                     <th data-sort-property="company">Company</th>
                     <th data-sort-property="email">Email</th>
                     <th data-sort-property="phone">Phone</th>
@@ -41,7 +39,6 @@
                     <td><span data-bind="text: id"></span></td>
                     <td><span data-bind="text: name"></span></td>
                     <td><span data-bind="text: age"></span></td>
-                    <td><i class="fa" data-bind="css: gender == 'male' ? 'fa-mars' : 'fa-venus' "></i></td>
                     <td><span data-bind="text: company"></span></td>
                     <td><span data-bind="text: email"></span></td>
                     <td><span data-bind="text: phone"></span></td>
@@ -70,6 +67,10 @@
                     <div class="form-group">
                         <label>Row Count: </label>
                         <p class="form-control-static" data-bind="text: rowCount"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Sort: </label>
+                        <p class="form-control-static" data-bind="text: sortProperty() + ' ' + sortDirection()"></p>
                     </div>
                     <div class="checkbox">
                         <label>
