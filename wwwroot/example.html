@@ -5,7 +5,27 @@
     <title>kn-table</title>
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" rel="stylesheet" type="text/css" />
-    <link href="content/example.css" rel="stylesheet" type="text/css" />
+    <style>
+        html {
+            overflow-y: scroll;
+        }
+
+        .form-inline > * {
+            margin: 10px 5px 10px 10px !important;
+        }
+
+        tr td:nth-child(1), th:nth-child(1) {
+            text-align: center;
+        }
+
+        tr td:nth-child(3), th:nth-child(3) {
+            text-align: center;
+        }
+
+        tr td:nth-child(7), th:nth-child(7) {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container" style="max-width: 790px;">
@@ -53,62 +73,113 @@
                 </tr>
             </tfoot>
         </table>
-        <hr />
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Debug Info</h3>
             </div>
             <div class="panel-body">
-                <form class="form-inline ">
-                    <div class="form-group">
-                        <label>Has Data: </label>
-                        <p class="form-control-static" data-bind="text: hasRows"></p>
+                <form>
+                    <div class="form-inline ">
+                        <div class="form-group">
+                            <label>Has Data: </label>
+                            <p class="form-control-static" data-bind="text: hasRows"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Row Count: </label>
+                            <p class="form-control-static" data-bind="text: rowCount"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Sort: </label>
+                            <p class="form-control-static" data-bind="text: sortProperty() + ' ' + sortDirection()"></p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-bind="checked: rowsClickable, click: function(data, evt) { rowsClickable(); return true; }" />&nbsp;Rows clickable?
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    Page Size: <span data-bind="text: pageSize"></span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,1)">1</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,5)">5</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,10)">10</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,15)">15</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,25)">25</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,50)">50</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,100)">100</a></li>
+                                    <li><a href="#" data-bind="click : pageSize.bind($data,1000)">1000</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Page: </label>
+                            <p class="form-control-static" data-bind="text: (currentPage() + 1) + ' of ' + pageCount()"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>First Page: </label>
+                            <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isFirstPage(), 'glyphicon-remove': !isFirstPage() }, style: { 'color': isFirstPage() ? 'lime': 'red' }"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Page: </label>
+                            <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isLastPage(), 'glyphicon-remove': !isLastPage() }, style: { 'color': isLastPage() ? 'lime': 'red' }"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Pagination Indexes: </label>
+                            <p class="form-control-static" data-bind="text: paginationIndexes"></p>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
+                            <button class="btn btn-success" data-bind="click: loadRecordsFromServer">Reload</button>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <button data-bind="click: gotoFirstPage"><<</button>
+                                <button data-bind="click: gotoPreviousPage"><</button>
+                                <!-- ko foreach : paginationIndexes() -->
+                                <button data-bind="click: $parent.gotoPage, text: $data+1"></button>
+                                <!-- /ko -->
+                                <button data-bind="click: gotoNextPage">></button>
+                                <button data-bind="click: gotoLastPage">>></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Row Count: </label>
-                        <p class="form-control-static" data-bind="text: rowCount"></p>
-                    </div>
-                    <div class="form-group">
-                        <label>Sort: </label>
-                        <p class="form-control-static" data-bind="text: sortProperty() + ' ' + sortDirection()"></p>
-                    </div>
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" data-bind="checked: rowsClickable, click: function(data, evt) { rowsClickable(); return true; }" />&nbsp;Rows clickable?
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label>Page Size: </label>
-                        <input class="form-control" type="number" data-bind="textInput : pageSize" max="50" step="5" />
-                    </div>
-                    <div class="form-group">
-                        <label>Page: </label>
-                        <p class="form-control-static" data-bind="text: (currentPage() + 1) + ' of ' + pageCount()"></p>
-                    </div>
-                    <div class="form-group">
-                        <label>First Page: </label>
-                        <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isFirstPage(), 'glyphicon-remove': !isFirstPage() }, style: { 'color': isFirstPage() ? 'lime': 'red' }"></span>
-                    </div>
-                    <div class="form-group">
-                        <label>Last Page: </label>
-                        <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isLastPage(), 'glyphicon-remove': !isLastPage() }, style: { 'color': isLastPage() ? 'lime': 'red' }"></span>
-                    </div>
-                    <div class="form-group">
-                        <label>Pagination Indexes: </label>
-                        <p class="form-control-static" data-bind="text: paginationIndexes"></p>
-                    </div><div class="form-group">
-                        <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
-                        <button class="btn btn-success" data-bind="click: loadAllData">Reload</button>
-                    </div>
-                    <div class="form-group">
-                        <div>
-                            <button data-bind="click: gotoFirstPage"><<</button>
-                            <button data-bind="click: gotoPreviousPage"><</button>
-                            <!-- ko foreach : paginationIndexes() -->
-                            <button data-bind="click: $parent.gotoPage, text: $data+1"></button>
-                            <!-- /ko -->
-                            <button data-bind="click: gotoNextPage">></button>
-                            <button data-bind="click: gotoLastPage">>></button>
+                    <div class="form-inline bg-info">
+                        <div class="form-group">
+                            <label>Name: </label>
+                            <input id="name" class="form-control" type="text" size="5" />
+                        </div>
+                        <div class="form-group">
+                            <label>Age: </label>
+                            <input id="age" class="form-control" type="number" size="1" style="width: 65px;" value="25" />
+                        </div>
+                        <div class="form-group">
+                            <div class="dropdown" id="company">
+                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    <span>Company </span> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" data-bind="foreach: distinctValues('company')">
+                                    <li><a href="#" data-bind="text: $data, click: function(data,evt) { $('#company').attr('data-val',data); $('#company span:first').text(data); }">1</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email: </label>
+                            <input id="email" class="form-control" type="text" size="8" />
+                        </div>
+                        <div class="form-group">
+                            <label>Phone: </label>
+                            <input id="phone" class="form-control" type="text" size="4" />
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input id="isActive" type="checkbox" />&nbsp;Active?
+                            </label>
+                        </div><div class="form-group">
+                            <button class="btn btn-primary" data-bind="click: function(data,evt) { var p={name:$('#name').val(), age:$('#age').val(), company:$('#company').attr('data-val'), email:$('#email').val(), phone:$('#phone').val(), 'isActive':$('#isActive').prop('checked').toString() }; saveRecordToServer(p);} ">Add Record</button>
                         </div>
                     </div>
                 </form>

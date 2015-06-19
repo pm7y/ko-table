@@ -15,7 +15,7 @@ public class PersonRepository : IRepository<Person>
         var jsonFile = HttpContext.Current.Server.MapPath("~/_dataSource.json");
         var jsonText = File.ReadAllText(jsonFile);
 
-        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText).OrderBy(p => p.PersonId);
+        var people = JsonConvert.DeserializeObject<IEnumerable<Person>>(jsonText).OrderBy(p => p.id);
 
         _allPeople.AddRange(people);
     }
@@ -32,12 +32,16 @@ public class PersonRepository : IRepository<Person>
 
     public Person Get(int id)
     {
-        return _allPeople.FirstOrDefault(p => p.PersonId == id);
+        return _allPeople.FirstOrDefault(p => p.id == id);
     }
 
     public void InsertOrUpdate(Person entry)
     {
-        var match = _allPeople.FirstOrDefault(p => p.PersonId == entry.PersonId);
+        if (entry.id < 1)
+        {
+            entry.id = _allPeople.Max(p => p.id) + 1;
+        }
+        var match = _allPeople.FirstOrDefault(p => p.id == entry.id);
 
         if (_allPeople.Contains(match))
         {
@@ -49,7 +53,7 @@ public class PersonRepository : IRepository<Person>
 
     public void Delete(int id)
     {
-        var match = _allPeople.FirstOrDefault(p => p.PersonId == id);
+        var match = _allPeople.FirstOrDefault(p => p.id == id);
 
         if (_allPeople.Contains(match))
         {

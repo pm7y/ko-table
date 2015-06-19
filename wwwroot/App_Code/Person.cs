@@ -3,28 +3,27 @@ using Newtonsoft.Json;
 
 public class Person
 {
-    [JsonProperty("id")]
-    public int PersonId { get; set; }
+    //[JsonProperty("id")]
+    public int id { get; set; }
 
-    [JsonProperty("isActive")]
-    public bool Active { get; set; }
+    //[JsonProperty("isActive")]
+    public bool isActive { get; set; }
 
-    [JsonProperty("age")]
-    public int Age { get; set; }
+    //[JsonProperty("age")]
+    public int age { get; set; }
 
-    [JsonProperty("name")]
-    public string Fullname { get; set; }
+    //[JsonProperty("name")]
+    public string name { get; set; }
 
-    [JsonProperty("gender")]
     [JsonIgnoreAttribute]
-    public string Gender { get; set; }
+    public string gender { get; set; }
 
-    [JsonProperty("company")]
-    public string Company { get; set; }
+    //[JsonProperty("company")]
+    public string company { get; set; }
 
-    [JsonProperty("email")]
-    public string Email { get; set; }
+    //[JsonProperty("email")]
+    public string email { get; set; }
 
-    [JsonProperty("phone")]
-    public string PhoneNumber { get; set; }
+    //[JsonProperty("phone")]
+    public string phone { get; set; }
 }
