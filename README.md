@@ -73,8 +73,6 @@ var ViewModel = (function () {
 
     // onInit is automcatically invoked when koTable is loaded.
     self.onInit = function () {
-        sw.elapsed('onInit');
-
         // load the data form the server
         self.loadAllData();
 

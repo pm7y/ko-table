@@ -133,7 +133,7 @@
                         </div>
                         <div class="form-group">
                             <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
-                            <button class="btn btn-success" data-bind="click: loadRecordsFromServer">Reload</button>
+                            <button class="btn btn-success" data-bind="click: loadPeople">Reload</button>
                         </div>
                         <div class="form-group">
                             <div>
@@ -150,36 +150,38 @@
                     <div class="form-inline bg-info">
                         <div class="form-group">
                             <label>Name: </label>
-                            <input id="name" class="form-control" type="text" size="5" />
+                            <input name="name" class="form-control" type="text" size="5" />
                         </div>
                         <div class="form-group">
                             <label>Age: </label>
-                            <input id="age" class="form-control" type="number" size="1" style="width: 65px;" value="25" />
+                            <input name="age" class="form-control" type="number" size="1" style="width: 65px;" value="25" />
                         </div>
                         <div class="form-group">
-                            <div class="dropdown" id="company">
+                            <div class="dropdown" id="companydd">
                                 <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                                     <span>Company </span> <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" data-bind="foreach: distinctValues('company')">
-                                    <li><a href="#" data-bind="text: $data, click: function(data,evt) { $('#company').attr('data-val',data); $('#company span:first').text(data); }">1</a></li>
+                                    <li><a href="#" data-bind="text: $data, click: function(data,evt) {  $('[name=\'company\']').val(data); $('#companydd').attr('data-val',data); $('#companydd span:first').text(data); }">1</a></li>
                                 </ul>
+                                <input name="company" type="hidden"/>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Email: </label>
-                            <input id="email" class="form-control" type="text" size="8" />
+                            <input name="email" class="form-control" type="text" size="8" />
                         </div>
                         <div class="form-group">
                             <label>Phone: </label>
-                            <input id="phone" class="form-control" type="text" size="4" />
+                            <input name="phone" class="form-control" type="text" size="4" />
                         </div>
                         <div class="checkbox">
                             <label>
-                                <input id="isActive" type="checkbox" />&nbsp;Active?
+                                <input name="isActive" type="checkbox" value="true"/>&nbsp;Active?
                             </label>
-                        </div><div class="form-group">
-                            <button class="btn btn-primary" data-bind="click: function(data,evt) { var p={name:$('#name').val(), age:$('#age').val(), company:$('#company').attr('data-val'), email:$('#email').val(), phone:$('#phone').val(), 'isActive':$('#isActive').prop('checked').toString() }; saveRecordToServer(p);} ">Add Record</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" data-bind="click: savePerson">Add Record</button>
                         </div>
                     </div>
                 </form>
@@ -195,7 +197,6 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
 
-    <script src="scripts/_app/stopwatch.js"></script>
     <script src="scripts/_app/koTable.js"></script>
     <script src="scripts/_app/viewModel.js"></script>
     <script src="scripts/_app/app.js"></script>

@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 using System.Web.Http;
 
-public class DataController : ApiController
+public class PersonController : ApiController
 {
     private static readonly PersonRepository Repository = new PersonRepository();
     // GET api/<controller>
     public IEnumerable<Person> Get()
     {
-        Thread.Sleep(new Random().Next(0, 2000));
         return Repository.Get();
     }
 

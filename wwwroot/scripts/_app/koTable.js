@@ -79,7 +79,7 @@ ko.bindingHandlers.koTable = new (function () {
             if (waiting.length === 1) {
                 clearInterval(firstRowBottomInterval);
                 if ($.cssHooks.borderColor) {
-                    table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function() {
+                    table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function () {
                         table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-style': firstRowBottomStyle });
                         waiting.pop();
                     });
@@ -193,9 +193,8 @@ ko.bindingHandlers.koTable = new (function () {
                     clearTimeout(searchInputTimeout);
                     searchInputTimeout = setTimeout(function () {
                         var searchText = $(evt.target).val();
-                        console.log(searchText);
                         tableViewModel.setRowFilter(searchText);
-                    }, 250);
+                    }, 500);
                 });
                 $(o).closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr"); //.attr("data-bind", "visible: hasRows()");
             });
@@ -241,7 +240,7 @@ var KnockoutTable = (function () {
                     $.each(_items(), function (i, o) {
                         for (var propName in o) {
                             if (o.hasOwnProperty(propName)) {
-                                var propVal = o[propName].toString().toLowerCase();
+                                var propVal = (o[propName] == null ? '' : o[propName]).toString().toLowerCase();
                                 var foundMatch = propVal.indexOf(internalRowFilter()) >= 0;
                                 if (foundMatch) {
                                     filteredItems.push(o);
@@ -355,6 +354,7 @@ var KnockoutTable = (function () {
 
         self.clearItems = function () {
             items([]);
+            self.currentPage(-1);
             self.currentPage(0);
         };
 
@@ -370,7 +370,7 @@ var KnockoutTable = (function () {
             var list = [];
 
             if (parseValue == null || typeof parseValue !== "function") {
-                parseValue = function(value) {
+                parseValue = function (value) {
                     return value == null ? '' : value.toString();
                 };
             }
