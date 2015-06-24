@@ -58,29 +58,38 @@ Since the koTable binding extends the viewModel object all you really need to do
 var ViewModel = (function () {
     var self = this;
 
-    self.loadAllData = function () {
+    self.savePerson = function () {
+        var person = $('form').serializeArray();
+
+        $.post("api/Person", person).always(function () {
+            self.loadPeople();
+        });
+    };
+
+    self.loadPeople = function() {
         // signal start of something that might take a while
         self.waitStart();
 
-        $.getJSON("api/Data", null, function (data) {
+        $.get("api/Person").always(function (data) {
             // load the data we received
             self.setItems(data);
 
             // signal end
             self.waitEnd();
         });
-    }
+    };
 
     // onInit is automcatically invoked when koTable is loaded.
     self.onInit = function () {
         // load the data form the server
-        self.loadAllData();
+        self.loadPeople();
 
         // hook up handler for when a row is clicked
         self.onRowClicked(function (evt) {
-            console.log(evt);
+            console.log(evt.data.model.name);
         });
     };
+
 });
 
 $(document).ready(function () {
