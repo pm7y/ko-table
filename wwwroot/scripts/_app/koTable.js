@@ -54,10 +54,11 @@ ko.bindingHandlers.koTable = new (function () {
 
         var waiting = [];
         var waitStartCallback = function () {
+            console.log('start wait');
             if (waiting.length === 0) {
                 waiting.push(true);
                 if ($.cssHooks.borderColor) {
-                    table.find("tr:first th").animate({ 'borderBottomColor': "#FF3300" });
+                    table.find("th:first th").animate({ 'borderBottomColor': "#FF3300" });
                     table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-style': firstRowBottomStyle || "solid" });
 
                     firstRowBottomInterval = setInterval(function () {
@@ -76,6 +77,7 @@ ko.bindingHandlers.koTable = new (function () {
         };
 
         var waitEndCallback = function () {
+            console.log('start wait');
             if (waiting.length === 1) {
                 clearInterval(firstRowBottomInterval);
                 if ($.cssHooks.borderColor) {
