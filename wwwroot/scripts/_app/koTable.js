@@ -63,15 +63,15 @@ ko.bindingHandlers.koTable = new (function () {
 
                     firstRowBottomInterval = setInterval(function () {
                         if (altColor) {
-                            table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null);
+                            table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null);
                             altColor = false;
                         } else {
-                            table.find("tr:first th").animate({ 'borderBottomColor': "#FF3300" }, null, null);
+                            table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': "#FF3300" }, null, null);
                             altColor = true;
                         }
                     }, 500);
                 } else {
-                    table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-color': "#FF3300", 'border-bottom-style': firstRowBottomStyle || "solid" });
+                    table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-color': "#FF3300", 'border-bottom-style': firstRowBottomStyle || "solid" });
                 }
             }
         };
@@ -81,12 +81,12 @@ ko.bindingHandlers.koTable = new (function () {
             if (waiting.length === 1) {
                 clearInterval(firstRowBottomInterval);
                 if ($.cssHooks.borderColor) {
-                    table.find("tr:first th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function () {
-                        table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-style': firstRowBottomStyle });
+                    table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function () {
+                        table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-style': firstRowBottomStyle });
                         waiting.pop();
                     });
                 } else {
-                    table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-color': firstRowBottomColor, 'border-bottom-style': firstRowBottomStyle });
+                    table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-color': firstRowBottomColor, 'border-bottom-style': firstRowBottomStyle });
                     waiting.pop();
                 }
             }
@@ -203,6 +203,8 @@ ko.bindingHandlers.koTable = new (function () {
         } else {
             table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
         }
+
+        table.find('thead').prepend("<tr><th colspan=\"100\" class=\"text-right\" style=\"border-color: none !important;border-width: 0 !important;margin:0; padding:0;font-size:10px; font-weight: normal;\"><em><span class=\"text-muted\" data-bind=\"text: 'Row Count: ' + rowCount()\"></span></em></th></tr>");
     };
 
 })();
@@ -265,7 +267,7 @@ var KnockoutTable = (function () {
                 var clickedTr = $(evt.target).closest("tr");
                 var data = ko.dataFor(clickedTr.get(0));
 
-                trigger(eventTypes.onRowClicked, { tr: clickedTr, model: data });
+                trigger(eventTypes.onRowClicked, { clickEvent: evt, tr: clickedTr, model: data });
             }
         };
 
@@ -344,8 +346,13 @@ var KnockoutTable = (function () {
         };
 
         function objectSortComparer(objA, objB) {
-            var oA = objA[self.sortProperty()];
-            var oB = objB[self.sortProperty()];
+            var oA = ko.unwrap(objA[self.sortProperty()]);
+            var oB = ko.unwrap(objB[self.sortProperty()]);
+
+            if (typeof (oA) === "string") {
+                oA = oA.toLowerCase();
+                oB = oB.toLowerCase();
+            }
 
             if (self.sortDirection() === "desc") {
                 return ((oA < oB) ? 1 : ((oA > oB) ? -1 : 0));
@@ -366,6 +373,10 @@ var KnockoutTable = (function () {
 
         self.allItems = function () {
             return _items();
+        };
+
+        self.observableItems = function () {
+            return _items;
         };
 
         self.distinctValues = function (property, parseValue) {
@@ -400,9 +411,9 @@ var KnockoutTable = (function () {
                     return ko.mapping.fromJS(item);
                 });
                 items(oa);
+            } else {
+                items(objects);
             }
-            items(objects);
-
         };
 
         self.gotoNextPage = function () {
