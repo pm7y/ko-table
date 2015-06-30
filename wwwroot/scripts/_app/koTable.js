@@ -102,7 +102,7 @@ ko.bindingHandlers.koTable = new (function () {
             tableViewModel = $.extend(viewModel.koTable[tableId], kt);
         }
 
-        viewModel.onInit.call();
+        viewModel.koTableReady.call();
 
         tableViewModel.onRowsClickableChanged(function (evt) {
             tbody.css("cursor", "default");
@@ -204,7 +204,7 @@ ko.bindingHandlers.koTable = new (function () {
 
                         if (searchText.length > 0) {
                             searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function () {
-                                $(this).removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
+                                searchSpan.removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
                                 searchBox.val("").trigger("input");
                             });
                         } else {

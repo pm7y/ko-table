@@ -3,31 +3,54 @@
 var ViewModel = (function () {
     var self = this;
 
-    var emptyItem = { age: null, company: null, email: null, id: null, isActive: null, name: null, phone: null };
-    self.modalItem = ko.mapping.fromJS(emptyItem);
-    self.doBeforeRemoveHandler = ko.observable(false);
+    var emptyItem = null;
+    self.modalItem = ko.observable();
+
+    self.initialized = ko.pureComputed(function () {
+        var emptyItemLoaded = self.modalItem && self.modalItem() && self.modalItem().hasOwnProperty("id");
+
+        return emptyItemLoaded;
+    });
+
+
+    self.initialize = function () {
+
+        // get a blank person object from the server
+        $.get("api/Person/GetEmpty").always(function (empty) {
+            emptyItem = empty;
+
+            self.modalItem(ko.mapping.fromJS(emptyItem));
+        });
+
+    };
+
 
     self.saveClickHandler = function () {
-
         var item = ko.mapping.toJS(self.modalItem);
         var isNew = !item.id;
 
         self.saveItemToServer(item, function (savedId) {
             if (isNew) {
                 item.id = parseInt(savedId);
+
                 self.koTable.pushItem(item);
+
+                $("#row-" + savedId + " td").addClass("warning");
             } else {
                 var items = self.koTable.findItem("id", parseInt(item.id));
-                ko.mapping.fromJS(self.modalItem, items[0]);
+                ko.mapping.fromJS(self.modalItem(), items[0]);
             }
-            ko.mapping.fromJS(emptyItem, self.modalItem);
+            ko.mapping.fromJS(emptyItem, self.modalItem());
             $('#editModal').modal('hide');
+
+
+            $("td.warning").css({ "background-color": "orange" }).removeClass("warning").animate({ 'backgroundColor': "transparent" }, 1000);
         });
 
     };
 
     self.addClickHandler = function () {
-        ko.mapping.fromJS(emptyItem, self.modalItem);
+        ko.mapping.fromJS(emptyItem, self.modalItem());
         $('#editModal').modal('show');
     };
 
@@ -80,6 +103,9 @@ var ViewModel = (function () {
     };
 
     self.deleteClickHandler = function (data, evt) {
+        $(evt.target).closest("tr")
+            .css({ "background-color": "mistyrose" });
+
         self.deleteItemFromServer(data.id(), function () {
             $(evt.target).closest("tr")
                 .css({ "background-color": "mistyrose" })
@@ -89,16 +115,20 @@ var ViewModel = (function () {
         });
     };
 
-    // onInit is automcatically invoked when koTable is loaded.
-    self.onInit = function () {
+    // ready is automcatically invoked when koTable is initialized.
+    self.koTableReady = function () {
         // load the data form the server
         self.reloadClickHandler();
 
         // hook up handler for when a row is clicked
         self.koTable.onRowClicked(function (evt) {
-            ko.mapping.fromJS(ko.mapping.toJS(evt.data.model), self.modalItem);
+
+            $(evt.data.tr).find("td").addClass("warning");
+
+            ko.mapping.fromJS(ko.mapping.toJS(evt.data.model), self.modalItem());
             $('#editModal').modal('show');
         });
     };
 
+    self.initialize();
 });

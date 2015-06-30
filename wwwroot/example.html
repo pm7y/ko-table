@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>kn-table</title>
+    <title>koTable Example</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" rel="stylesheet" type="text/css" />
     <style>
@@ -10,44 +11,77 @@
             overflow-y: scroll;
         }
 
-        .form-inline > * {
-            margin: 10px 5px 10px 10px !important;
+        .form-group {
+            margin: 5px 5px 5px 5px !important;
         }
 
-        tr td:nth-child(2), th:nth-child(2) {
-            text-align: right;
+        .delete-btn {
+            cursor: pointer;
         }
 
-        tr td:nth-child(4), th:nth-child(4) {
-            text-align: center;
+        /* limit the height of a bootstrap dropdown */
+        .scrollable-menu {
+            height: auto;
+            max-height: 200px;
+            overflow-x: hidden;
         }
 
-        tr td:nth-child(8), th:nth-child(8) {
-            text-align: center;
+        /* fix bootstrap bug which causes the body
+            to shift to the left when the modal is opened */
+        body.modal-open {
+            padding-right: 0 !important;
+            overflow: hidden;
+        }
+
+        .page-title {
+            padding-top: 15px;
+            padding-bottom: 10px;
+        }
+
+            .page-title h2 {
+                margin: 0;
+            }
+
+            .page-title button {
+                margin-left: 50px;
+            }
+
+        .glyphicon-trash {
+            font-size: 14px;
+            line-height: 19px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        input[type="number"] {
+            max-width: 70px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h3>Contact List</h3>
-        <p><button class="btn btn-default" type="submit" data-bind="click: addClickHandler">Add Record</button></p>
         <table>
             <tr>
                 <td><!-- this table is here from testing purposes to make sure a non-bound table doesn't cause problems ;) --></td>
             </tr>
         </table>
 
+        <div class="page-title">
+            <h2 class="pull-left">koTable Example</h2>
+            <button class="btn btn-default btn-sm" type="submit" data-bind="click: addClickHandler"><span class="glyphicon glyphicon-plus"></span>&nbsp;&nbsp;Add New Record</button>
+        </div>
+
         <table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, rowsClickable: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
             <thead>
                 <tr>
                     <th></th>
-                    <th data-sort-property="id">Id</th>
+                    <th data-sort-property="id" class="text-right">Id</th>
                     <th data-sort-property="name">Name</th>
-                    <th data-sort-property="age">Age</th>
+                    <th data-sort-property="age" class="text-center">Age</th>
                     <th data-sort-property="company">Company</th>
                     <th data-sort-property="email">Email</th>
                     <th data-sort-property="phone">Phone</th>
-                    <th data-sort-property="isActive">Active</th>
+                    <th data-sort-property="isActive" class="text-center">Active</th>
                 </tr>
                 <tr>
                     <th>
@@ -56,19 +90,19 @@
                 </tr>
             </thead>
             <tbody data-bind="foreach: koTable.pagedItems">
-                <tr>
+                <tr data-bind="attr: {id: 'row-'+id()}">
                     <td>
-                        <a data-bind="click: $parent.deleteClickHandler">
-                            <span class="glyphicon glyphicon-trash" style="font-size: 12px;"></span>
+                        <a data-bind="click: $parent.deleteClickHandler" class="delete-btn">
+                            <span class="glyphicon glyphicon-trash"></span>
                         </a>
                     </td>
-                    <td><span data-bind="text: id"></span></td>
+                    <td class="text-right"><span data-bind="text: id"></span></td>
                     <td><span data-bind="text: name"></span></td>
-                    <td><span data-bind="text: age"></span></td>
+                    <td class="text-center"><span data-bind="text: age"></span></td>
                     <td><span data-bind="text: company"></span></td>
                     <td><span data-bind="text: email"></span></td>
                     <td><span data-bind="text: phone"></span></td>
-                    <td><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+                    <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
                 </tr>
             </tbody>
             <tfoot>
@@ -79,7 +113,8 @@
                 </tr>
             </tfoot>
         </table>
-        <div class="panel panel-default" >
+
+        <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Debug Info</h3>
             </div>
@@ -126,12 +161,12 @@
                             <p class="form-control-static" data-bind="text: (currentPage() + 1) + ' of ' + pageCount()"></p>
                         </div>
                         <div class="form-group">
-                            <label>First Page: </label>
-                            <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isFirstPage(), 'glyphicon-remove': !isFirstPage() }, style: { 'color': isFirstPage() ? 'lime': 'red' }"></span>
+                            <label>Is First Page: </label>
+                            <span class="glyphicon form-control-static" data-bind="css: { 'glyphicon-ok-sign': isFirstPage(), 'glyphicon-remove-sign': !isFirstPage() }, style: { 'color': isFirstPage() ? 'lime': 'red' }"></span>
                         </div>
                         <div class="form-group">
-                            <label>Last Page: </label>
-                            <span class="glyphicon" data-bind="css: { 'glyphicon-ok': isLastPage(), 'glyphicon-remove': !isLastPage() }, style: { 'color': isLastPage() ? 'lime': 'red' }"></span>
+                            <label>Is Last Page: </label>
+                            <span class="glyphicon form-control-static" data-bind="css: { 'glyphicon-ok-sign': isLastPage(), 'glyphicon-remove-sign': !isLastPage() }, style: { 'color': isLastPage() ? 'lime': 'red' }"></span>
                         </div>
                         <div class="form-group">
                             <label>Pagination Indexes: </label>
@@ -141,22 +176,13 @@
                             <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
                             <button class="btn btn-success" data-bind="click: $parent.reloadClickHandler">Reload</button>
                         </div>
-                        <div class="form-group">
-                            <div>
-                                <button data-bind="click: gotoFirstPage"><<</button>
-                                <button data-bind="click: gotoPreviousPage"><</button>
-                                <!-- ko foreach : paginationIndexes() -->
-                                <button data-bind="click: $parent.gotoPage, text: $data+1"></button>
-                                <!-- /ko -->
-                                <button data-bind="click: gotoNextPage">></button>
-                                <button data-bind="click: gotoLastPage">>></button>
-                            </div>
-                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+
 
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
         <div class="modal-dialog" role="document">
@@ -165,78 +191,82 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" id="editModalLabel">Edit Record</h4>
                 </div>
-                <div class="modal-body">
-                    <form name="modal" class="form-horizontal" data-bind="with: modalItem" >
-                        <!-- ko if: id -->
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Id</label>
-                            <div class="col-sm-10" style="margin-top: 7px;">
-                                <span class="form-control-static" data-bind="text: id"></span>
-                                <input name="id" type="hidden" data-bind="value: id" />
-                            </div>
-                        </div>
-                        <!-- /ko -->
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Name</label>
-                            <div class="col-sm-10">
-                                <input type="text" class="form-control" name="name" data-bind="value: name">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Age</label>
-                            <div class="col-sm-10" style="max-width: 100px;">
-                                <input type="number" class="form-control" name="age" min="0" data-bind="value: age">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Company</label>
-                            <div class="dropdown col-sm-10" id="companydd">
-                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                    <span data-bind="text: company">Company </span> <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu" data-bind="foreach: $parent.koTable.distinctValues('company')">
-                                    <li><a href="#" data-bind="text: $data, click: function(data,evt) { company(data);  $('.modal [name=\'company\']').val(data); $('.modal #companydd').attr('data-val',data); $('.modal #companydd span:first').text(data); }">1</a></li>
-                                </ul>
-                                <input name="company" type="hidden" data-bind="value: company" />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Email</label>
-                            <div class="col-sm-10">
-                                <input type="email" class="form-control" name="email" data-bind="value: email">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">Phone</label>
-                            <div class="col-sm-10">
-                                <input type="text" class="form-control" name="phone" data-bind="value: phone">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-sm-offset-2 col-sm-10">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" name="isActive" data-bind="checked: isActive"> active?
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                <div class="modal-body" data-bind="template: { name: 'modal-template', if: initialized, data: modalItem }"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" data-bind="click: saveClickHandler">Save</button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bind="click: saveClickHandler"><span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Save</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script type="text/html" id="modal-template">
+        <form name="modal" class="form-horizontal">
+            <!-- ko if: id -->
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Id</label>
+                <div class="col-sm-10">
+                    <label class="form-control-static" data-bind="text: id"></label>
+                    <input name="id" type="hidden" data-bind="value: id" />
+                </div>
+            </div>
+            <!-- /ko -->
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="name" data-bind="value: name">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Age</label>
+                <div class="col-sm-10">
+                    <input type="number" class="form-control" name="age" min="0" data-bind="value: age">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Company</label>
+                <div class="dropdown col-sm-10" id="companydd">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <span data-bind="text: company && company() && company().length ? company() : 'Select a company'"></span>&nbsp;<span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu scrollable-menu" data-bind="foreach: $parent.koTable.distinctValues('company')">
+                        <li><a href="#" data-bind="text: $data, click: $parent.company.bind($data)"></a></li>
+                    </ul>
+                    <input name="company" type="hidden" data-bind="value: company" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Email</label>
+                <div class="col-sm-10">
+                    <input type="email" class="form-control" name="email" data-bind="value: email">
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-sm-2 control-label">Phone</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="phone" data-bind="value: phone">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="isActive" data-bind="checked: isActive"> is active?
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </script>
+
     <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-color/2.1.2/jquery.color.min.js"></script>
 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.min.js"></script>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.3/knockout.validation.min.js"></script>
 
     <script src="scripts/_app/koTable.js"></script>
     <script src="scripts/_app/viewModel.js"></script>

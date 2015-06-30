@@ -4,13 +4,13 @@ using Newtonsoft.Json;
 public class Person
 {
     //[JsonProperty("id")]
-    public int id { get; set; }
+    public int? id { get; set; }
 
     //[JsonProperty("isActive")]
-    public bool isActive { get; set; }
+    public bool? isActive { get; set; }
 
     //[JsonProperty("age")]
-    public int age { get; set; }
+    public int? age { get; set; }
 
     //[JsonProperty("name")]
     public string name { get; set; }

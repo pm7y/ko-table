@@ -68,24 +68,24 @@ var ViewModel = (function () {
 
     self.loadPeople = function() {
         // signal start of something that might take a while
-        self.waitStart();
+        self.koTable.waitStart();
 
         $.get("api/Person").always(function (data) {
             // load the data we received
-            self.setItems(data);
+            self.koTable.setItems(data);
 
             // signal end
-            self.waitEnd();
+            self.koTable.waitEnd();
         });
     };
 
     // onInit is automcatically invoked when koTable is loaded.
-    self.onInit = function () {
+    self.koTableReady = function () {
         // load the data form the server
         self.loadPeople();
 
         // hook up handler for when a row is clicked
-        self.onRowClicked(function (evt) {
+        self.koTable.onRowClicked(function (evt) {
             console.log(evt.data.model.name);
         });
     };
@@ -114,17 +114,18 @@ You'll need to reference the following things in your web page:
 
 - [jquery](https://github.com/jquery/jquery)
 - [knockoutjs](https://github.com/knockout/knockout)
+- [bootstrap](https://github.com/twbs/bootstrap)
 
 ### Optional (kind of) ###
-- [jquery.color](https://github.com/jquery/jquery-color): not strictly *required* but it'll look nicer if you do.
-- [bootstrap](https://github.com/twbs/bootstrap): also, not strictly required but bootstrap tables look nice!
+- [jquery.color](https://github.com/jquery/jquery-color): not strictly *required*.
 
 
 ## Installation ##
 
 ## Nuget ##
 
-Installation is easy from nuget: 
+
+Installation is easy from [nuget](https://www.nuget.org/packages/koTable/): 
 
 ```
 PM> Install-Package koTable

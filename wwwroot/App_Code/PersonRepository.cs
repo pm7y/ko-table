@@ -37,7 +37,7 @@ public class PersonRepository : IRepository<Person>
 
     public int InsertOrUpdate(Person entry)
     {
-        if (entry.id < 1)
+        if (!entry.id.HasValue)
         {
             entry.id = _allPeople.Max(p => p.id) + 1;
         }
@@ -50,7 +50,7 @@ public class PersonRepository : IRepository<Person>
 
         _allPeople.Add(entry);
 
-        return entry.id;
+        return entry.id.Value;
     }
 
     public void Delete(int id)
