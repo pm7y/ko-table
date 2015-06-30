@@ -35,7 +35,7 @@ public class PersonRepository : IRepository<Person>
         return _allPeople.FirstOrDefault(p => p.id == id);
     }
 
-    public void InsertOrUpdate(Person entry)
+    public int InsertOrUpdate(Person entry)
     {
         if (entry.id < 1)
         {
@@ -49,6 +49,8 @@ public class PersonRepository : IRepository<Person>
         }
 
         _allPeople.Add(entry);
+
+        return entry.id;
     }
 
     public void Delete(int id)
