@@ -196,7 +196,21 @@ ko.bindingHandlers.koTable = new (function () {
                 $(o).find("input[type='text']").on("input", function (evt) {
                     clearTimeout(searchInputTimeout);
                     searchInputTimeout = setTimeout(function () {
-                        var searchText = $(evt.target).val();
+                        var searchBox = $(evt.target);
+                        var searchText = searchBox.val();
+                        var searchSpan = $(o).find("span:first");
+
+                        searchSpan.removeClass("glyphicon-search").removeClass("glyphicon-remove");
+
+                        if (searchText.length > 0) {
+                            searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function () {
+                                $(this).removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
+                                searchBox.val("").trigger("input");
+                            });
+                        } else {
+                            searchSpan.addClass("glyphicon-search");
+                        }
+
                         tableViewModel.setRowFilter(searchText);
                     }, 500);
                 });
