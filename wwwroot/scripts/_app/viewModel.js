@@ -21,9 +21,11 @@ var ViewModel = (function () {
 
             self.modalItem(ko.mapping.fromJS(emptyItem));
         });
-
     };
 
+    self.closeClickHandler = function () {
+        $("td.warning").removeClass("warning");
+    };
 
     self.saveClickHandler = function () {
         var item = ko.mapping.toJS(self.modalItem);
@@ -83,7 +85,8 @@ var ViewModel = (function () {
         });
     };
 
-    self.deleteItemFromServer = function (itemId, callback) {
+    self.deleteItemFromServer = function (data, callback) {
+        var itemId = data.id();
         if (itemId > 0) {
             // signal start of something that might take a while
             self.koTable.waitStart();
@@ -91,13 +94,18 @@ var ViewModel = (function () {
             $.ajax({
                 url: "api/Person/" + itemId,
                 type: "DELETE"
-            }).always(function (data) {
-
+            }).always(function (response) {
+                // signal end
+                self.koTable.waitEnd();
+            }).done(function (response) {
                 if (callback) {
                     callback();
                 }
-                // signal end
-                self.koTable.waitEnd();
+            }).fail(function (response, b, c, d) {
+                if (response.responseJSON && response.responseJSON.ExceptionMessage) {
+                    response.handled = true;
+                    toastr.error("Failed to delete " + data.name() + "; " + response.responseJSON.ExceptionMessage);
+                }
             });
         }
     };
@@ -106,7 +114,7 @@ var ViewModel = (function () {
         $(evt.target).closest("tr")
             .css({ "background-color": "mistyrose" });
 
-        self.deleteItemFromServer(data.id(), function () {
+        self.deleteItemFromServer(data, function () {
             $(evt.target).closest("tr")
                 .css({ "background-color": "mistyrose" })
                 .fadeOut(500, function () {
@@ -122,7 +130,6 @@ var ViewModel = (function () {
 
         // hook up handler for when a row is clicked
         self.koTable.onRowClicked(function (evt) {
-
             $(evt.data.tr).find("td").addClass("warning");
 
             ko.mapping.fromJS(ko.mapping.toJS(evt.data.model), self.modalItem());

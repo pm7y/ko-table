@@ -6,7 +6,7 @@ using System.Web.Http;
 public class PersonController : ApiController
 {
     private static readonly PersonRepository Repository = new PersonRepository();
-    private int _maxDelayMs = 2000;
+    private int _maxDelayMs = 1000;
     private static Random _rnd = new Random(Environment.TickCount);
 
     // GET api/<controller>

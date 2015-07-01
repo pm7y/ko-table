@@ -193,7 +193,7 @@
                 </div>
                 <div class="modal-body" data-bind="template: { name: 'modal-template', if: initialized, data: modalItem }"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal" data-bind="click: closeClickHandler"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
                     <button type="button" class="btn btn-primary btn-sm" data-bind="click: saveClickHandler"><span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;Save</button>
                 </div>
             </div>
@@ -267,6 +267,8 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.3/knockout.validation.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
 
     <script src="scripts/_app/koTable.js"></script>
     <script src="scripts/_app/viewModel.js"></script>
