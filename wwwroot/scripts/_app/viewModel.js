@@ -57,12 +57,7 @@ var ViewModel = (function () {
     };
 
     self.saveItemToServer = function (item, callback) {
-        // signal start of something that might take a while
-        self.koTable.waitStart();
-
         $.post("api/Person", item).always(function (id) {
-            // signal end
-            self.koTable.waitEnd();
 
             callback(id);
         });
@@ -73,35 +68,23 @@ var ViewModel = (function () {
     };
 
     self.getItemsFromServer = function () {
-        // signal start of something that might take a while
-        self.koTable.waitStart();
-
         $.get("api/Person").always(function (data) {
             // load the data we received
             self.koTable.setItems(data);
-
-            // signal end
-            self.koTable.waitEnd();
         });
     };
 
     self.deleteItemFromServer = function (data, callback) {
         var itemId = data.id();
         if (itemId > 0) {
-            // signal start of something that might take a while
-            self.koTable.waitStart();
-
             $.ajax({
                 url: "api/Person/" + itemId,
                 type: "DELETE"
-            }).always(function (response) {
-                // signal end
-                self.koTable.waitEnd();
             }).done(function (response) {
                 if (callback) {
                     callback();
                 }
-            }).fail(function (response, b, c, d) {
+            }).fail(function (response) {
                 if (response.responseJSON && response.responseJSON.ExceptionMessage) {
                     response.handled = true;
                     toastr.error("Failed to delete " + data.name() + "; " + response.responseJSON.ExceptionMessage);

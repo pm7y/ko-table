@@ -39,58 +39,9 @@ ko.bindingHandlers.koTable = new (function () {
         var initialSortProperty = params.initialSortProperty;
         var initialSortDirection = params.initialSortDirection === "asc" ? "asc" : "desc";
 
-        //$(document).ajaxStart(function () {
-        //    waitStartCallback();
-        //});
+        //table.find('thead').prepend("<tr class=\"header-info-row\"><th colspan=\"100\" class=\"text-right\" style=\"border-color: none !important;border-width: 0 !important;margin:0; padding:0;font-size:10px; font-weight: normal;\"><em><span class=\"text-muted\" data-bind=\"text: 'Row Count: ' + koTable.rowCount()\"></span></em></th></tr>");
 
-        //$(document).ajaxStop(function () {
-        //    waitEndCallback();
-        //});
-
-        var firstRowBottomInterval, altColor;
-        var firstRowBottomWidth = table.find("tr:first th").css("border-bottom-width");
-        var firstRowBottomColor = table.find("tr:first th").css("border-bottom-color");
-        var firstRowBottomStyle = table.find("tr:first th").css("border-bottom-style");
-
-        var waiting = [];
-        var waitStartCallback = function () {
-            if (waiting.length === 0) {
-                waiting.push(true);
-                if ($.cssHooks.borderColor) {
-                    table.find("tr:first th").animate({ 'borderBottomColor': "#FF3300" });
-                    table.find("tr:first th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-style': firstRowBottomStyle || "solid" });
-
-                    firstRowBottomInterval = setInterval(function () {
-                        if (altColor) {
-                            table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null);
-                            altColor = false;
-                        } else {
-                            table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': "#FF3300" }, null, null);
-                            altColor = true;
-                        }
-                    }, 500);
-                } else {
-                    table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth || "1px", 'border-bottom-color': "#FF3300", 'border-bottom-style': firstRowBottomStyle || "solid" });
-                }
-            }
-        };
-
-        var waitEndCallback = function () {
-            if (waiting.length === 1) {
-                clearInterval(firstRowBottomInterval);
-                if ($.cssHooks.borderColor) {
-                    table.find("tr:nth-child(2) th").animate({ 'borderBottomColor': firstRowBottomColor }, null, null, function () {
-                        table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-style': firstRowBottomStyle });
-                        waiting.pop();
-                    });
-                } else {
-                    table.find("tr:nth-child(2) th").css({ 'border-bottom-width': firstRowBottomWidth, 'border-bottom-color': firstRowBottomColor, 'border-bottom-style': firstRowBottomStyle });
-                    waiting.pop();
-                }
-            }
-        };
-
-        var kt = new KnockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable, waitStartCallback, waitEndCallback);
+        var kt = new KnockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable);
         kt.setItems([]);
 
         var tableViewModel;
@@ -180,7 +131,7 @@ ko.bindingHandlers.koTable = new (function () {
                     "<!-- /ko -->" +
                     "<li data-bind=\"css: { disabled: koTable.isLastPage }\"><a href=\"#\" data-bind=\"click: koTable.gotoNextPage\"><span class=\"glyphicon glyphicon-forward\" aria-hidden=\"true\"></span></a></li>" +
                     "<li data-bind=\"css: { disabled: koTable.isLastPage }\"><a href=\"#\" data-bind=\"click: koTable.gotoLastPage\"><span class=\"glyphicon glyphicon-fast-forward\" aria-hidden=\"true\"></span></a></li>" +
-                    "</ul>")
+                    "</ul><div class=\"text-muted pull-right\" style=\"height:34px; line-height:34px;\" data-bind=\"visable: koTable.rowCount(), text: 'Row Count: ' + koTable.rowCount()\"></div>")
                 .closest("td, th").css({ 'padding-left': 0, 'padding-right': 0, 'text-align': "left" }).attr("colspan", 100);
         });
 
@@ -220,19 +171,17 @@ ko.bindingHandlers.koTable = new (function () {
             table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
         }
 
-        table.find('thead').prepend("<tr><th colspan=\"100\" class=\"text-right\" style=\"border-color: none !important;border-width: 0 !important;margin:0; padding:0;font-size:10px; font-weight: normal;\"><em><span class=\"text-muted\" data-bind=\"text: 'Row Count: ' + koTable.rowCount()\"></span></em></th></tr>");
+
     };
 
 })();
 
 var KnockoutTable = (function () {
 
-    function knockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable, onWaitStartCallback, onWaitEndCallback) {
+    function knockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable) {
         var self = this;
         var maxPagesToShowInPaginator = 5;
         var eventTypes = {
-            onWaitStart: "onWaitStart",
-            onWaitEnd: "onWaitEnd",
             onRowClicked: "onRowClicked",
             onRowsClickableChanged: "onRowsClickableChanged"
         };
@@ -546,14 +495,6 @@ var KnockoutTable = (function () {
             addEventHandler(eventTypes.onRowsClickableChanged, listener);
         };
 
-        self.waitStart = function () {
-            trigger(eventTypes.onWaitStart);
-        };
-
-        self.waitEnd = function () {
-            trigger(eventTypes.onWaitEnd);
-        };
-
         var addEventHandler = function (type, listener) {
             if (typeof internalListeners[type] === "undefined") {
                 internalListeners[type] = [];
@@ -610,9 +551,6 @@ var KnockoutTable = (function () {
                 }
             }
         };
-
-        addEventHandler(eventTypes.onWaitStart, onWaitStartCallback);
-        addEventHandler(eventTypes.onWaitEnd, onWaitEndCallback);
     }
 
     return knockoutTable;

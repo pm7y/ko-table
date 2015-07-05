@@ -67,19 +67,13 @@ var ViewModel = (function () {
     };
 
     self.loadPeople = function() {
-        // signal start of something that might take a while
-        self.koTable.waitStart();
-
         $.get("api/Person").always(function (data) {
             // load the data we received
             self.koTable.setItems(data);
-
-            // signal end
-            self.koTable.waitEnd();
         });
     };
 
-    // onInit is automcatically invoked when koTable is loaded.
+    // koTableReady is automcatically invoked when koTable is loaded.
     self.koTableReady = function () {
         // load the data form the server
         self.loadPeople();
@@ -116,14 +110,9 @@ You'll need to reference the following things in your web page:
 - [knockoutjs](https://github.com/knockout/knockout)
 - [bootstrap](https://github.com/twbs/bootstrap)
 
-### Optional (kind of) ###
-- [jquery.color](https://github.com/jquery/jquery-color): not strictly *required*.
-
-
 ## Installation ##
 
 ## Nuget ##
-
 
 Installation is easy from [nuget](https://www.nuget.org/packages/koTable/): 
 
