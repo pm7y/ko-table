@@ -205,7 +205,8 @@ var KnockoutTable = (function () {
 
         var items = ko.pureComputed({
             read: function () {
-                if (internalRowFilter() && internalRowFilter().length) {
+                var rowFilter = ko.unwrap(internalRowFilter);
+                if (rowFilter && rowFilter.length) {
                     var filteredItems = [];
                     $.each(_items(), function (i, o) {
 
@@ -213,7 +214,7 @@ var KnockoutTable = (function () {
                         for (var propName in jo) {
                             if (jo.hasOwnProperty(propName)) {
                                 var propVal = (jo[propName] == null ? '' : jo[propName]).toString().toLowerCase();
-                                var foundMatch = propVal.indexOf(internalRowFilter()) >= 0;
+                                var foundMatch = propVal.indexOf(rowFilter) >= 0;
                                 if (foundMatch) {
                                     filteredItems.push(o);
                                     break;
@@ -380,7 +381,7 @@ var KnockoutTable = (function () {
 
             objects = objects || [];
 
-            var objects = $.map(objects, function (o) {
+            objects = $.map(objects, function (o) {
                 var jo = ko.mapping.toJS(o);
                 return ko.mapping.fromJS(jo);
             });
@@ -388,10 +389,10 @@ var KnockoutTable = (function () {
             items(objects);
         };
 
-        self.findItem = function (propName, propValue) {
+        self.findItem = function(propName, propValue) {
             var uv = ko.unwrap(propValue);
 
-            var matched = $.grep(_items(), function (o) {
+            var matched = $.grep(_items(), function(o) {
                 var uo = ko.unwrap(o);
                 var up = ko.unwrap(uo[propName]);
 
@@ -399,17 +400,17 @@ var KnockoutTable = (function () {
             });
 
             return matched;
-        }
+        };
 
-        self.removeItem = function (obj) {
-            var toDelete = $.grep(_items(), function (o) {
+        self.removeItem = function(obj) {
+            var toDelete = $.grep(_items(), function(o) {
                 return obj === o;
             });
 
-            $.each(toDelete, function (i, o) {
+            $.each(toDelete, function(i, o) {
                 _items.remove(o);
             });
-        }
+        };
 
         self.gotoNextPage = function () {
             if (self.currentPage() < (self.pageCount() - 1)) {
