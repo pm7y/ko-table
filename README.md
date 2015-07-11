@@ -77,11 +77,6 @@ var ViewModel = (function () {
     self.koTableReady = function () {
         // load the data form the server
         self.loadPeople();
-
-        // hook up handler for when a row is clicked
-        self.koTable.onRowClicked(function (evt) {
-            console.log(evt.data.model.name);
-        });
     };
 
 });
