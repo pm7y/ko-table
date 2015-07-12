@@ -14,10 +14,9 @@ The key thing to notice here is the ***koTable*** binding on the table element. 
 
 The tbody has a foreach binding bound to the ***pagedItems*** collection. But pagedItems isn't an object in the viewModel so where does it come from you cry? Well, it's added automatically by the ***koTable*** binding.
 
-Notice also the ***ko-table-pagination*** class on the div in the table footer. Any element in the table with this class will be rendered as a pagination control (as in the screenshot above).
 
 ```html
-<table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10}">
+<table id="table-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, initialSortProperty: 'id', initialSortDirection: 'desc' }">
 	<thead>
 	    <tr>
 	        <th data-sort-property="id">Id</th>
@@ -40,13 +39,6 @@ Notice also the ***ko-table-pagination*** class on the div in the table footer. 
 	        <td><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
 	    </tr>
 	</tbody>
-	<tfoot>
-	    <tr>
-	        <td>
-	            <div class="ko-table-pagination"></div>
-	        </td>
-	    </tr>
-	</tfoot>
 </table>
 ```
 
@@ -58,25 +50,17 @@ Since the koTable binding extends the viewModel object all you really need to do
 var ViewModel = (function () {
     var self = this;
 
-    self.savePerson = function () {
-        var person = $('form').serializeArray();
-
-        $.post("api/Person", person).always(function () {
-            self.loadPeople();
-        });
-    };
-
-    self.loadPeople = function() {
+    self.getItemsFromServer = function () {
         $.get("api/Person").always(function (data) {
             // load the data we received
             self.koTable.setItems(data);
         });
     };
 
-    // koTableReady is automcatically invoked when koTable is loaded.
+    // ready is automcatically invoked when koTable is initialized.
     self.koTableReady = function () {
         // load the data form the server
-        self.loadPeople();
+        self.getItemsFromServer();
     };
 
 });
@@ -92,10 +76,13 @@ These are the options you can pass to the koTable binding:
 
 - **pageSize**: the number of rows per page. Default is all (*i.e.* no paging).
 - **showSearch**: show a search box in place of any ***ko-table-search*** classes. Default is false.
-- **rowsClickable**: make rows clickable and raise an event when they are. Default: true.
+- **rowsClickable**: make rows clickable and raise an event when they are clicked. Default: true.
 - **allowSort**: allows the grid to be sorted by column.
 - **initialSortProperty**: the name of the property to initially sort by.
 - **initialSortDirection**: the initial sort directon. Default is 'asc'.
+- **showDeleteButton**: show a delete button for each row. Default is false.
+- **showEditButton**: show an edit button for each row. Default is false.
+- **showNewButton**: show a new button in the top lefft corner. Default is false.
 
 ## Requirements ##
 
@@ -103,6 +90,8 @@ You'll need to reference the following things in your web page:
 
 - [jquery](https://github.com/jquery/jquery)
 - [knockoutjs](https://github.com/knockout/knockout)
+- [knockout.mapping](https://github.com/SteveSanderson/knockout.mapping)
+- [knockout.validation](https://github.com/Knockout-Contrib/Knockout-Validation)
 - [bootstrap](https://github.com/twbs/bootstrap)
 
 ## Installation ##

@@ -12,8 +12,6 @@
  * TODO: group by column
  * TODO: export data
  */
-
-
 $.fn.pulse = function (done) {
     var options = {
         times: 2,
@@ -39,6 +37,23 @@ $.fn.pulse = function (done) {
         period.call(this, repeat);
     });
 };
+
+ko.validation.init({
+    parseInputAttributes: true,
+
+    errorElementClass: 'has-error',
+    errorMessageClass: 'text-danger',
+    errorClass: 'has-error',
+
+    decorateInputElement: true,
+
+    insertMessages: false,
+    messagesOnModified: false,
+    decorateElementOnModified: false,
+    grouping: {
+        deep: true
+    }
+});
 
 trace = function (m) {
     log(m, 0);
@@ -73,80 +88,143 @@ ko.bindingHandlers.koTable = new (function () {
         allowSort: true,
         initialSortProperty: 'id',
         initialSortDirection: 'desc',
-        showDeleteRowButton: false,
-        showEditRowButton: false
+        showDeleteButton: false,
+        showEditButton: false,
+        showNewButton: false
         }
         */
         trace("koTable init!");
         var params = valueAccessor();
         var table = $(tableElement);
-
-        var thead = $(tableElement).find("thead");
-        var tbody = $(tableElement).find("tbody");
+        var tableId = table.attr("id") || ("koTable-" + $("table").index(table)).replace("-0", "");
+        table.attr("id", tableId);
+        var modalTemplateId = tableId + "-modal-template";
+        var modalId = tableId + "-modal";
+        var thead = table.find("thead");
+        var tbody = table.find("tbody");
+        var tfoot = table.find("tfoot");
         var pageSize = params.pageSize || -1;
         var rowsClickable = params.rowsClickable != null ? params.rowsClickable : false;
         var showSearch = params.showSearch === true ? true : false;
         var allowSort = params.allowSort == null ? true : params.allowSort;
         var initialSortProperty = params.initialSortProperty;
         var initialSortDirection = params.initialSortDirection === "asc" ? "asc" : "desc";
-        var showDeleteRowButton = params.showDeleteRowButton === true ? true : false;
-        var showEditRowButton = params.showEditRowButton === true ? true : false;
+        var showDeleteButton = params.showDeleteButton === true ? true : false;
+        var showEditButton = params.showEditButton === true ? true : false;
+        var showNewButton = params.showNewButton === true ? true : false;
 
         var kt = new KnockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable);
         viewModel.koTable = {};
 
+        $(document).click(function() {
+            //table.find("td").removeClass("danger");
+        });
 
-        var tableViewModel = $.extend(viewModel.koTable, kt);
-        if (showEditRowButton === true) {
-
+        if (showDeleteButton || showEditButton || showNewButton) {
             thead.find("tr").each(function (i, o) {
-                var tr = $(o);
-                if (tr.find(".ko-table-search").length === 0) {
-                    tr.prepend("<th class=\"edit-column text-center\"></th>");
-                }
+                $(o).prepend("<th style=\"width:40px; max-width:40px;padding-left:0;padding-right:0;text-align:center;\"></th>");
             });
+
             tbody.find("tr").each(function (i, o) {
                 var tr = $(o);
                 if (tr.find("td [data-bind]").length) {
-                    tr.prepend("<td class=\"edit-column text-center\" style=\"cursor:pointer;width:0px;padding-left:0;padding-right:0;\"><a class=\"edit-btn\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a></td>");
+                    tr.prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
+                }
+            });
+        }
+
+        var tableViewModel = $.extend(viewModel.koTable, kt);
+        var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler;
+
+        viewModel.koTable.addRowClickedHandler = function (callback) {
+            if (callback && typeof callback === "function") {
+                onRowClickedHandler = callback;
+            }
+        };
+        viewModel.koTable.addRowDeleteHandler = function (callback) {
+            if (callback && typeof callback === "function") {
+                onRowDeleteHandler = callback;
+            }
+        };
+        viewModel.koTable.addRowSaveHandler = function (callback) {
+            if (callback && typeof callback === "function") {
+                onRowSaveHandler = callback;
+            }
+        };
+
+        tableViewModel.overrideModalTemplateId = function (id) {
+            modalTemplateId = id;
+        };
+
+        viewModel.koTableReady.call();
+
+        if (showEditButton || showNewButton) {
+            tbody.find("tr").each(function (i, o) {
+                var tr = $(o);
+                if (tr.find("td [data-bind]").length) {
+                    tr.find("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
                 }
             });
 
             tableViewModel.modalRow = null;
             tableViewModel.modalOriginalItem = null;
-            tableViewModel.modalItem = ko.observable();
+            tableViewModel.modalItem = null;
+            tableViewModel.modalItemReady = ko.observable(false);
+            tableViewModel.modalItemIsModified = ko.pureComputed(function () {
+                var isModified = false;
 
-            var modalHtml = "<div class=\"modal fade\" id=\"editModal\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"editModalLabel\">\
+                if (tableViewModel.modalItemReady) {
+                    isModified = !!ko.validation.group(tableViewModel.modalItem).find(function (observable) {
+                        return ko.validation.utils.isValidatable(observable) && observable.isModified();
+                    });
+                }
+
+                return isModified;
+            });
+
+            function setModalItemUnmodified() {
+                ko.validation.group(tableViewModel.modalItem).find(function (observable) {
+                    if (ko.validation.utils.isValidatable(observable)) {
+                        observable.isModified(false);
+                    };
+                });
+            };
+
+            var modalHtml = "<div class=\"modal fade\" id=\"" + modalId + "\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"editModalLabel\">\
                 <div class=\"modal-dialog\" role=\"document\">\
                     <div class=\"modal-content\">\
                         <div class=\"modal-header\">\
                             <button type=\"button\" class=\"close close-button\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\
-                            <h4 class=\"modal-title\" id=\"editModalLabel\">Edit Record</h4>\
+                            <h4 class=\"modal-title\">Edit Record</h4>\
                         </div>\
-                        <div class=\"modal-body\" data-bind=\"template: { name: 'modal-template', data: $data.koTable }\">\</div>\
+                        <div class=\"modal-body\" data-bind=\"template: { name: '" + modalTemplateId + "', if: $data.koTable.modalItemReady(), data: $data.koTable }\">\</div>\
                         <div class=\"modal-footer\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm close-button\"><span class=\"glyphicon glyphicon-remove\"></span>&nbsp;Cancel</button>\
-                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
+                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.modalItemIsModified() || !$data.koTable.modalItem.isValid()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
                         </div>\
                     </div>\
                 </div>\
             </div>";
 
-            $(tableElement).find("tfoot td:first").append(modalHtml);
+            if (!tfoot.length) {
+                table.append("<tfoot><tr><td></td></tr></tfoot>");
+                tfoot = table.find("tfoot");
+            }
 
-            $(tableElement).find("#editModal .close-button").click(function () {
-                $(tableElement).find("#editModal").modal('hide');
+            tfoot.find("td:first").append(modalHtml);
+
+            table.find("#" + modalId + " .close-button").click(function () {
+                table.find("#" + modalId).modal('hide');
                 if (tableViewModel.modalRow) {
                     tableViewModel.modalRow.find("td.bg-info").removeClass("bg-info");
                 }
             });
-            $(tableElement).find("#editModal .save-button").click(function () {
-
+            table.find("#" + modalId + " .save-button").click(function () {
                 if (tableViewModel.modalItem()) {
                     onRowSaveHandler({
                         model: ko.mapping.toJS(tableViewModel.modalItem()),
                         completedCallback: function (savedId) {
-                            $(tableElement).find("#editModal").modal('hide');
+                            table.find("#" + modalId).modal('hide');
 
                             var model = ko.mapping.toJS(tableViewModel.modalItem());
                             var isNew = !model.id;
@@ -171,46 +249,26 @@ ko.bindingHandlers.koTable = new (function () {
                         }
                     });
                 } else {
-                    $(tableElement).find("#editModal").modal('hide');
+                    table.find("#" + modalId).modal('hide');
                 }
 
             });
         }
 
-        if (showDeleteRowButton === true) {
-            thead.find("tr").each(function (i, o) {
-                var tr = $(o);
-                if (tr.find(".ko-table-search").length === 0) {
-                    tr.prepend("<th class=\"delete-column text-center\"></th>");
-                }
-            });
+        if (showDeleteButton === true) {
             tbody.find("tr").each(function (i, o) {
                 var tr = $(o);
                 if (tr.find("td [data-bind]").length) {
-                    tr.prepend("<td class=\"delete-column text-center\" style=\"cursor:pointer;width:0px;padding-left:0;padding-right:0;\"><a class=\"delete-btn\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a></td>");
+                    tr.find("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
                 }
             });
         }
 
-
-        var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler;
-
-        viewModel.koTable.addRowClickedHandler = function (callback) {
-            if (callback && typeof callback === "function") {
-                onRowClickedHandler = callback;
-            }
-        };
-        viewModel.koTable.addRowDeleteHandler = function (callback) {
-            if (callback && typeof callback === "function") {
-                onRowDeleteHandler = callback;
-            }
-        };
-        viewModel.koTable.addRowSaveHandler = function (callback) {
-            if (callback && typeof callback === "function") {
-                onRowSaveHandler = callback;
-            }
-        };
-        viewModel.koTableReady.call();
+        if (showNewButton === true) {
+            thead.find("tr").each(function (i, o) {
+                $(o).find("th:first").css({ "padding": "0 0 4px 0", "text-align": "center" }).append("<a style=\"padding: 0px 5px 1px 6px;margin-bottom:3px;\" class=\"btn btn-default btn-sm new-btn\"><span class=\"glyphicon glyphicon-plus text-info small\" style=\"margin:0;padding:0;\"></span></a>");
+            });
+        }
 
         var clickFunction = function (evt) {
             var clickTarget = $(evt.target);
@@ -222,31 +280,105 @@ ko.bindingHandlers.koTable = new (function () {
                     if (clickedNode) {
                         var data = ko.dataFor(clickedRow.get(0));
 
-                        if ((!clickTarget.closest("button").length && !clickTarget.closest("a").length)) {
-                            onRowClickedHandler({ event: evt, tr: clickedRow, model: data });
-                        } else if (clickTarget.closest(".delete-column").length) {
+                        if ((!clickTarget.closest("thead").length &&
+                            !clickTarget.closest("tfoot").length &&
+                            !clickTarget.closest(".ko-table-search").length &&
+                            !clickTarget.closest("button").length &&
+                            !clickTarget.closest("a").length)) {
+
+                            if (onRowClickedHandler && typeof onRowClickedHandler === "function") {
+                                onRowClickedHandler({ event: evt, tr: clickedRow, model: data });
+                            }
+                        } else if (clickTarget.closest(".delete-btn").length) {
+                            $("td").removeClass("danger");
+                            $(".popover").popover('destroy');
+
                             clickedRow.find("td").addClass("danger");
 
-                            onRowDeleteHandler({
-                                event: evt,
-                                tr: clickedRow,
-                                model: ko.mapping.toJS(data),
-                                completedCallback: function() {
-                                    clickedRow.find("td").pulse(function() {
-                                        tableViewModel.removeItem(data);
-                                    });
-                                }
+                            var tdId = "#" + clickTarget.closest("td").attr("id");
+                            console.log(tdId);
+                            clickTarget.popover({ trigger: "manual", container: tdId, placement: "right", html: true, content: "<div class=\"btn-group\"><a class=\"btn btn-sm btn-danger confirm-yes\" data-dismiss=\"confirmation\" href=\"#\" target=\"_self\"><i class=\"glyphicon glyphicon-ok\"></i></a><a class=\"btn btn-default btn-sm confirm-no\" data-dismiss=\"confirmation\"><i class=\"glyphicon glyphicon-remove\"></i></a></div>" }).popover("show");
+
+                            $(".confirm-yes").one("click", function (evt) {
+                                $(".popover").popover('destroy');
+
+                                onRowDeleteHandler({
+                                    event: evt,
+                                    tr: clickedRow,
+                                    model: ko.mapping.toJS(data),
+                                    completedCallback: function () {
+                                        clickedRow.find("td").pulse(function () {
+                                            tableViewModel.removeItem(data);
+                                        });
+                                    }
+                                });
+
+                                evt.preventDefault();
+                                return true;
                             });
-                        } else if (clickTarget.closest(".edit-column").length) {
-                            if (!tableViewModel.modalItem()) {
-                                tableViewModel.modalItem(ko.mapping.fromJS(ko.mapping.toJS(data)));
+                            $(".confirm-no").one("click", function (evt) {
+                                $("td").removeClass("danger");
+                                $(".popover").popover('destroy');
+
+                                evt.preventDefault();
+                                return true;
+                            });
+
+
+                        } else if (clickTarget.closest(".edit-btn").length) {
+
+                            $("td").removeClass("danger");
+                            $(".popover").popover('destroy');
+
+                            if (!$("#" + modalTemplateId).length) {
+                                alert("A template with id [" + modalTemplateId + "] was not found.");
+                                return;
+                            }
+
+                            if (!tableViewModel.modalItem) {
+                                tableViewModel.modalItem = ko.validatedObservable(ko.mapping.fromJS(ko.mapping.toJS(data)));
+                                tableViewModel.modalItemReady(true);
                             } else {
                                 ko.mapping.fromJS(ko.mapping.toJS(data), tableViewModel.modalItem());
                             }
+
                             tableViewModel.modalRow = clickedRow;
                             tableViewModel.modalOriginalItem = data;
                             clickedRow.find("td").addClass("bg-info");
-                            $('#editModal').modal('show');
+
+                            setModalItemUnmodified();
+                            $("#" + modalId + " .modal-title").text("Edit Record");
+                            $("#" + modalId).modal({ backdrop: "static" });
+                        }
+                        else if (clickTarget.closest(".new-btn").length) {
+
+                            $("td").removeClass("danger");
+                            $(".popover").popover('destroy');
+
+                            if (!$("#" + modalTemplateId).length) {
+                                alert("A template with id [" + modalTemplateId + "] was not found.");
+                                return;
+                            }
+
+                            var inputs = $($.parseHTML($("#" + modalTemplateId).get(0).innerText)).find("input");
+                            var emptyModel = {};
+                            inputs.each(function (i, o) {
+                                emptyModel[o.name] = null;
+                            });
+
+                            if (!tableViewModel.modalItem) {
+                                tableViewModel.modalItem = ko.validatedObservable(ko.mapping.fromJS(emptyModel));
+                                tableViewModel.modalItemReady(true);
+                            } else {
+                                ko.mapping.fromJS(emptyModel, tableViewModel.modalItem());
+                            }
+
+                            tableViewModel.modalRow = null;
+                            tableViewModel.modalOriginalItem = null;
+
+                            setModalItemUnmodified();
+                            $("#" + modalId + " .modal-title").text("New Record");
+                            $("#" + modalId).modal({ backdrop: "static" });
                         }
                     }
                 }
@@ -271,22 +403,28 @@ ko.bindingHandlers.koTable = new (function () {
             tbody.css("cursor", "pointer");
         }
 
+        if (thead.length) {
+            thead.click(clickFunction);
+        } else if (!tbody.length) {
+            $.error("The table has no thead element so clicking will not be enabled!");
+        }
+
         if (tbody.length) {
             tbody.click(clickFunction);
         } else if (!tbody.length) {
-            $.error("The table has no tbody element so row clicking will not be enabled!");
+            $.error("The table has no tbody element so clicking will not be enabled!");
         }
 
         if (allowSort) {
             var descendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-bottom\" aria-hidden=\"true\" style=\"margin-left:5px; color:silver; font-size: 10px;\"></span>";
             var ascendingIconHtml = "<span class=\"sort-icon glyphicon glyphicon-triangle-top\" aria-hidden=\"true\" style=\"margin-left:5px; color:silver; font-size: 10px;\"></span>";
 
-            var sortableHeadings = $("[data-sort-property]");
+            var sortableHeadings = table.find("[data-sort-property]");
             sortableHeadings.css("cursor", "pointer");
 
             var currentSortDir = tableViewModel.sortDirection();
             var currentSortProp = tableViewModel.sortProperty();
-            var currentSortHeading = $("[data-sort-property='" + currentSortProp + "']");
+            var currentSortHeading = table.find("[data-sort-property='" + currentSortProp + "']");
 
             if (currentSortDir === "desc") {
                 currentSortHeading.append(descendingIconHtml);
@@ -316,6 +454,13 @@ ko.bindingHandlers.koTable = new (function () {
             });
         }
 
+        if (tfoot.length) {
+            tfoot.find("td:first").append("<div class=\"ko-table-pagination\"></div>");
+        } else {
+            table.append("<tfoot><tr><td><div class=\"ko-table-pagination\"></div></td></tr></tfoot>");
+            tfoot = table.find("tfoot");
+        }
+
         $.each(table.find(".ko-table-pagination"), function (i, o) {
             $(o).html("<span data-bind=\"if: !koTable.hasRows()\">There are no records to show at the moment :(</span><ul class=\"pagination\" data-bind=\"if: koTable.paginationRequired()\" style=\"padding: 0 !important; margin: 5px 0 5px 0 !important;\" >" +
                     "<li data-bind=\"css: { disabled: koTable.isFirstPage }\"><a href=\"#\" data-bind=\"click: koTable.gotoFirstPage\"><span class=\"glyphicon glyphicon-step-backward\" aria-hidden=\"true\"></span></a></li>" +
@@ -333,34 +478,35 @@ ko.bindingHandlers.koTable = new (function () {
 
             var searchInputTimeout;
 
-            $.each(table.find(".ko-table-search"), function (i, o) {
-                $(o).addClass("input-group").css({ "width": "100%" });
-                $(o).html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
-                    "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" value=\"\" />"
-                );
-                $(o).find("input[type='text']").on("input", function (evt) {
-                    clearTimeout(searchInputTimeout);
-                    searchInputTimeout = setTimeout(function () {
-                        var searchBox = $(evt.target);
-                        var searchText = searchBox.val();
-                        var searchSpan = $(o).find("span:first");
+            thead.append("<tr><th colspan=\"1000\"><div class=\"ko-table-search\"></div></th></tr>");
 
-                        searchSpan.removeClass("glyphicon-search").removeClass("glyphicon-remove");
+            var koSearch = table.find(".ko-table-search");
+            koSearch.addClass("input-group").css({ "width": "100%" });
+            koSearch.html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
+                "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" value=\"\" />");
 
-                        if (searchText.length > 0) {
-                            searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function () {
-                                searchSpan.removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
-                                searchBox.val("").trigger("input");
-                            });
-                        } else {
-                            searchSpan.addClass("glyphicon-search");
-                        }
+            koSearch.find("input[type='text']").on("input", function (evt) {
+                clearTimeout(searchInputTimeout);
+                searchInputTimeout = setTimeout(function () {
+                    var searchBox = $(evt.target);
+                    var searchText = searchBox.val();
+                    var searchSpan = koSearch.find("span:first");
 
-                        tableViewModel.setRowFilter(searchText);
-                    }, 500);
-                });
-                $(o).closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr"); //.attr("data-bind", "visible: hasRows()");
+                    searchSpan.removeClass("glyphicon-search").removeClass("glyphicon-remove");
+
+                    if (searchText.length > 0) {
+                        searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function () {
+                            searchSpan.removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
+                            searchBox.val("").trigger("input");
+                        });
+                    } else {
+                        searchSpan.addClass("glyphicon-search");
+                    }
+
+                    tableViewModel.setRowFilter(searchText);
+                }, 500);
             });
+            koSearch.closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr"); //.attr("data-bind", "visible: hasRows()");
         } else {
             table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
         }

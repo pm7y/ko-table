@@ -6,7 +6,7 @@ using System.Web.Http;
 public class PersonController : ApiController
 {
     private static readonly PersonRepository Repository = new PersonRepository();
-    private int _maxDelayMs = 1000;
+    private int _maxDelayMs = 0;
     private static Random _rnd = new Random(Environment.TickCount);
 
     // GET api/<controller>
@@ -18,28 +18,28 @@ public class PersonController : ApiController
     // GET api/<controller>
     public IEnumerable<Person> Get()
     {
-        Thread.Sleep(_rnd.Next(0, _maxDelayMs));
+        if (_maxDelayMs > 0) Thread.Sleep(_rnd.Next(0, _maxDelayMs));
         return Repository.Get();
     }
 
     // GET api/<controller>/5
     public Person Get(int id)
     {
-        Thread.Sleep(_rnd.Next(0, _maxDelayMs));
+        if (_maxDelayMs > 0) Thread.Sleep(_rnd.Next(0, _maxDelayMs));
         return Repository.Get(id);
     }
 
     // POST api/<controller>
     public int Post([FromBody] Person value)
     {
-        Thread.Sleep(_rnd.Next(0, _maxDelayMs));
+        if (_maxDelayMs > 0) Thread.Sleep(_rnd.Next(0, _maxDelayMs));
         return Repository.InsertOrUpdate(value);
     }
-    
+
     // DELETE api/<controller>/5
     public void Delete(int id)
     {
-        Thread.Sleep(_rnd.Next(0, _maxDelayMs));
+        if (_maxDelayMs > 0) Thread.Sleep(_rnd.Next(0, _maxDelayMs));
         Repository.Delete(id);
     }
 }

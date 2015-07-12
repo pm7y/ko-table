@@ -7,12 +7,10 @@
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="http://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" rel="stylesheet" type="text/css" />
     <style>
+        /* stop the page shifting to the left when
+            scrollbars become visible */
         html {
             overflow-y: scroll;
-        }
-
-        .form-group {
-            margin: 5px 5px 5px 5px !important;
         }
 
         /* limit the height of a bootstrap dropdown */
@@ -22,25 +20,12 @@
             overflow-x: hidden;
         }
 
-        /* fix bootstrap bug which causes the body
+        /* fix bootstrap issue which causes the body
             to shift to the left when the modal is opened */
         body.modal-open {
             padding-right: 0 !important;
             overflow: hidden;
         }
-
-        .page-title {
-            padding-top: 15px;
-            padding-bottom: 10px;
-        }
-
-            .page-title h2 {
-                margin: 0;
-            }
-
-            .page-title button {
-                margin-left: 50px;
-            }
 
         input[type="number"] {
             max-width: 70px;
@@ -49,15 +34,15 @@
 </head>
 <body>
     <div class="container">
-        <div class="page-title">
-            <h2 class="pull-left">koTable Example</h2>
-            <button class="btn btn-default btn-sm" type="submit" data-bind="click: addClickHandler"><span class="glyphicon glyphicon-plus"></span>&nbsp;&nbsp;Add New Record</button>
+        <div class="page-title text-right">
+            <a href="https://github.com/fallenidol/ko-table" target="_blank">@github</a>&nbsp;&nbsp;&nbsp;<a href="https://www.nuget.org/packages/koTable/" target="_blank">@nuget</a>
         </div>
 
-        <table class="table table-striped table-hover" data-bind="koTable: { pageSize: 10, showSearch: true, rowsClickable: false, showDeleteRowButton: true, showEditRowButton: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
+        <h4>Example 1: Sorting & Paging</h4>
+        <table id="table-example-1" class="table table-striped table-hover" data-bind="koTable: { pageSize: 5, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
             <thead>
                 <tr>
-                    <th data-sort-property="id" class="text-right">Id</th>
+                    <th data-sort-property="id" class="text-right" style="width: 45px;">Id</th>
                     <th data-sort-property="name">Name</th>
                     <th data-sort-property="age" class="text-center">Age</th>
                     <th data-sort-property="company">Company</th>
@@ -65,7 +50,6 @@
                     <th data-sort-property="phone">Phone</th>
                     <th data-sort-property="isActive" class="text-center">Active</th>
                 </tr>
-                <tr><th><div class="ko-table-search"></div></th></tr>
             </thead>
             <tbody data-bind="foreach: koTable.pagedItems">
                 <tr>
@@ -78,101 +62,165 @@
                     <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
                 </tr>
             </tbody>
-            <tfoot><tr><td><div class="ko-table-pagination"></div></td></tr></tfoot>
         </table>
 
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Debug Info</h3>
-            </div>
-            <div class="panel-body">
-                <form data-bind="with: koTable">
-                    <div class="form-inline ">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" data-bind="checked: rowsClickable, click: function(data, evt) { rowsClickable(); return true; }" />&nbsp;Rows clickable?
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <div class="dropdown">
-                                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                    Page Size: <span data-bind="text: pageSize"></span>
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,1)">1</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,5)">5</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,10)">10</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,15)">15</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,25)">25</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,50)">50</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,100)">100</a></li>
-                                    <li><a href="#" data-bind="click : pageSize.bind($data,1000)">1000</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-primary" data-bind="visible: hasRows(), click: clearItems">Clear</button>
-                            <button class="btn btn-success" data-bind="click: $parent.reloadClickHandler">Reload</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <h4>Example 2: The Search Box</h4>
+        <table id="table-example-2" class="table table-striped table-hover" data-bind="koTable: { pageSize: 5, showSearch: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
+            <thead>
+                <tr>
+                    <th data-sort-property="id" class="text-right" style="width: 45px;">Id</th>
+                    <th data-sort-property="name">Name</th>
+                    <th data-sort-property="age" class="text-center">Age</th>
+                    <th data-sort-property="company">Company</th>
+                    <th data-sort-property="email">Email</th>
+                    <th data-sort-property="phone">Phone</th>
+                    <th data-sort-property="isActive" class="text-center">Active</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: koTable.pagedItems">
+                <tr>
+                    <td class="text-right"><span data-bind="text: id"></span></td>
+                    <td><span data-bind="text: name"></span></td>
+                    <td class="text-center"><span data-bind="text: age"></span></td>
+                    <td><span data-bind="text: company"></span></td>
+                    <td><span data-bind="text: email"></span></td>
+                    <td><span data-bind="text: phone"></span></td>
+                    <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>Example 3: The Delete Button</h4>
+        <table id="table-example-3" class="table table-striped table-hover" data-bind="koTable: { pageSize: 5, showDeleteButton: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
+            <thead>
+            <tr>
+                <th data-sort-property="id" class="text-right" style="width: 45px;">Id</th>
+                <th data-sort-property="name">Name</th>
+                <th data-sort-property="age" class="text-center">Age</th>
+                <th data-sort-property="company">Company</th>
+                <th data-sort-property="email">Email</th>
+                <th data-sort-property="phone">Phone</th>
+                <th data-sort-property="isActive" class="text-center">Active</th>
+            </tr>
+            </thead>
+            <tbody data-bind="foreach: koTable.pagedItems">
+            <tr>
+                <td class="text-right"><span data-bind="text: id"></span></td>
+                <td><span data-bind="text: name"></span></td>
+                <td class="text-center"><span data-bind="text: age"></span></td>
+                <td><span data-bind="text: company"></span></td>
+                <td><span data-bind="text: email"></span></td>
+                <td><span data-bind="text: phone"></span></td>
+                <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h4>Example 4: The New & Edit Buttons</h4>
+        <table id="table-example-4" class="table table-striped table-hover" data-bind="koTable: { pageSize: 5, showEditButton: true, showNewButton: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
+            <thead>
+            <tr>
+                <th data-sort-property="id" class="text-right" style="width: 45px;">Id</th>
+                <th data-sort-property="name">Name</th>
+                <th data-sort-property="age" class="text-center">Age</th>
+                <th data-sort-property="company">Company</th>
+                <th data-sort-property="email">Email</th>
+                <th data-sort-property="phone">Phone</th>
+                <th data-sort-property="isActive" class="text-center">Active</th>
+            </tr>
+            </thead>
+            <tbody data-bind="foreach: koTable.pagedItems">
+            <tr>
+                <td class="text-right"><span data-bind="text: id"></span></td>
+                <td><span data-bind="text: name"></span></td>
+                <td class="text-center"><span data-bind="text: age"></span></td>
+                <td><span data-bind="text: company"></span></td>
+                <td><span data-bind="text: email"></span></td>
+                <td><span data-bind="text: phone"></span></td>
+                <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h4>Example 5: The Kitchen Sink</h4>
+        <table id="table-example-5" class="table table-striped table-hover" data-bind="koTable: { pageSize: 25, rowsClickable: true, showSearch: true, showDeleteButton: true, showEditButton: true, showNewButton: true, initialSortProperty: 'id', initialSortDirection: 'desc'  }">
+            <thead>
+                <tr>
+                    <th data-sort-property="id" class="text-right" style="width: 45px;">Id</th>
+                    <th data-sort-property="name">Name</th>
+                    <th data-sort-property="age" class="text-center">Age</th>
+                    <th data-sort-property="company">Company</th>
+                    <th data-sort-property="email">Email</th>
+                    <th data-sort-property="phone">Phone</th>
+                    <th data-sort-property="isActive" class="text-center">Active</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: koTable.pagedItems">
+                <tr>
+                    <td class="text-right"><span data-bind="text: id"></span></td>
+                    <td><span data-bind="text: name"></span></td>
+                    <td class="text-center"><span data-bind="text: age"></span></td>
+                    <td><span data-bind="text: company"></span></td>
+                    <td><span data-bind="text: email"></span></td>
+                    <td><span data-bind="text: phone"></span></td>
+                    <td class="text-center"><span data-bind="css: { 'glyphicon-ok': isActive, 'glyphicon-remove': !isActive }, style: { 'color': isActive ? 'lime': 'red' }" class="sort-icon glyphicon small" aria-hidden="true"></span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <script type="text/html" id="modal-template" name="modal-template">
+    <script type="text/html" id="table-example-4-modal-template" name="table-example-4-modal-template">
         <form name="modal" class="form-horizontal" data-bind="with: modalItem()">
-            <!-- ko if: id -->
+            <!-- ko if: $data.id -->
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Id</label>
                 <div class="col-sm-10">
-                    <label class="form-control-static" data-bind="text: id"></label>
-                    <input name="id" type="hidden" data-bind="value: id" />
+                    <label class="form-control-static" data-bind="text: $data.id"></label>
+                    <input name="id" type="hidden" data-bind="value: $data.id" />
                 </div>
             </div>
             <!-- /ko -->
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Name</label>
-                <div class="col-sm-10">
-                    <input type="text" class="form-control" name="name" data-bind="value: name">
+                <div class="col-sm-10" data-bind="css: {'has-error': !$data.name.isValid() }">
+                    <input type="text" class="form-control" name="name" data-bind="value: $data.name" required>
                 </div>
             </div>
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Age</label>
-                <div class="col-sm-10">
-                    <input type="number" class="form-control" name="age" min="0" data-bind="value: age">
+                <div class="col-sm-10" data-bind="css: {'has-error': !$data.age.isValid() }">
+                    <input type="number" class="form-control" name="age" data-bind="value: $data.age" required min="18">
                 </div>
             </div>
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Company</label>
                 <div class="dropdown col-sm-10" id="companydd">
-                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        <span data-bind="text: company && company() && company().length ? company() : 'Select a company'"></span>&nbsp;<span class="caret"></span>
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" data-bind="css: {'btn-danger': !$data.company.isValid() }">
+                        <span data-bind="text: $data.company.isValid() ? $data.company() : 'Select a company'"></span>&nbsp;<span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu scrollable-menu" data-bind="foreach: $parent.distinctValues('company')">
-                        <li><a href="#" data-bind="text: $data, click: $parent.company.bind($data)"></a></li>
+                        <li><a href="#" data-bind="text: $data, click: $parent.company && $parent.company.bind($data)"></a></li>
                     </ul>
-                    <input name="company" type="hidden" data-bind="value: company" />
+                    <input name="company" type="hidden" data-bind="value: $data.company" required />
                 </div>
             </div>
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Email</label>
-                <div class="col-sm-10">
-                    <input type="email" class="form-control" name="email" data-bind="value: email">
+                <div class="col-sm-10" data-bind="css: {'has-error': !$data.email.isValid() }">
+                    <input type="email" class="form-control" name="email" data-bind="value: $data.email" required>
                 </div>
             </div>
             <div class="form-group row">
                 <label class="col-sm-2 control-label">Phone</label>
-                <div class="col-sm-10">
-                    <input type="text" class="form-control" name="phone" data-bind="value: phone">
+                <div class="col-sm-10" data-bind="css: {'has-error': !$data.phone.isValid() }">
+                    <input type="text" class="form-control" name="phone" data-bind="value: $data.phone" required>
                 </div>
             </div>
             <div class="form-group row">
                 <div class="col-sm-offset-2 col-sm-10">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="isActive" data-bind="checked: isActive"> is active?
+                            <input type="checkbox" name="isActive" data-bind="checked: $data.isActive"> is active?
                         </label>
                     </div>
                 </div>
@@ -185,6 +233,7 @@
 
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-debug.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout.mapping/2.4.1/knockout.mapping.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout-validation/2.0.3/knockout.validation.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
 

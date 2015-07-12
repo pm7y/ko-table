@@ -1,40 +1,22 @@
 ﻿/*global toastr: true, $: true, sw: true */
 
-var ViewModel = (function () {
+var BaseModel = (function () {
     var self = this;
 
-    var emptyModel;
-
-    function showNewRecordModal() {
-        if (self.koTable.modalItem()) {
-            ko.mapping.fromJS(emptyModel, self.koTable.modalItem());
-        } else {
-            self.koTable.modalItem(ko.mapping.fromJS(emptyModel));
-        }
-        $('#editModal').modal('show');
-    }
-
-    function populateEmptyModel(callback) {
-        $.get("api/Person/GetEmpty").always(function (data) {
-            emptyModel = data;
-            callback();
-        });
-    };
-
-    function getItemsFromServer() {
+    self.getItemsFromServer = function () {
         $.get("api/Person").always(function (data) {
             // load the data we received
             self.koTable.setItems(data);
         });
     };
 
-    function saveItemToServer(item, callback) {
+    self.saveItemToServer = function (item, callback) {
         $.post("api/Person", item).always(function (id) {
             callback(id);
         });
     };
 
-    function deleteItemFromServer(id, callback) {
+    self.deleteItemFromServer = function (id, callback) {
         $.ajax({
             url: "api/Person/" + id,
             type: "DELETE"
@@ -43,27 +25,77 @@ var ViewModel = (function () {
         });
     };
 
-    self.addClickHandler = function () {
-        if (!emptyModel) {
-            populateEmptyModel(showNewRecordModal);
-        } else {
-            showNewRecordModal();
-        }
-    };
+});
 
-    self.reloadClickHandler = function () {
-        getItemsFromServer();
-    };
+var Example1Model = function () {
+    var self = this;
+
+    BaseModel.call(self);
 
     // ready is automcatically invoked when koTable is initialized.
     self.koTableReady = function () {
 
         // load the data form the server
-        getItemsFromServer();
+        self.getItemsFromServer();
+    };
 
-        // hook up handler for when a row is clicked
-        self.koTable.addRowClickedHandler(function (args) {
-            console.log(["A row was clicked!", args]);
+};
+
+var Example2Model = function () {
+    var self = this;
+
+    BaseModel.call(self);
+
+    // ready is automcatically invoked when koTable is initialized.
+    self.koTableReady = function () {
+
+        // load the data form the server
+        self.getItemsFromServer();
+    };
+
+};
+
+var Example3Model = function () {
+    var self = this;
+
+    BaseModel.call(self);
+
+    // ready is automcatically invoked when koTable is initialized.
+    self.koTableReady = function () {
+
+        // load the data form the server
+        self.getItemsFromServer();
+
+        // hook up handler for when a row's delete button is clicked
+        self.koTable.addRowDeleteHandler(function (args) {
+            console.log(["The row delete button was clicked!", args]);
+
+            // save the item from server and call the
+            // completed callback to pulse the row
+            self.deleteItemFromServer(args.model.id, args.completedCallback);
+        });
+    };
+
+};
+
+var Example4Model = function () {
+    var self = this;
+
+    BaseModel.call(self);
+
+    // ready is automcatically invoked when koTable is initialized.
+    self.koTableReady = function () {
+
+        // load the data form the server
+        self.getItemsFromServer();
+
+        // hook up handler for when a row's delete button is clicked
+        self.koTable.addRowDeleteHandler(function (args) {
+            console.log(["The row delete button was clicked!", args]);
+
+            // save the item from server and call the
+            // completed callback to pulse the row
+            self.deleteItemFromServer(args.model.id, args.completedCallback);
         });
 
         // hook up handler for when the modal save button is clicked
@@ -72,8 +104,24 @@ var ViewModel = (function () {
 
             // save the item to server and call the
             // completed callback to pulse the row
-            saveItemToServer(args.model, args.completedCallback);
+            self.saveItemToServer(args.model, args.completedCallback);
         });
+    };
+
+};
+
+var Example5Model = function () {
+    var self = this;
+
+    BaseModel.call(self);
+
+    // ready is automcatically invoked when koTable is initialized.
+    self.koTableReady = function () {
+
+        self.koTable.overrideModalTemplateId("table-example-4-modal-template");
+
+        // load the data form the server
+        self.getItemsFromServer();
 
         // hook up handler for when a row's delete button is clicked
         self.koTable.addRowDeleteHandler(function (args) {
@@ -81,8 +129,22 @@ var ViewModel = (function () {
 
             // save the item from server and call the
             // completed callback to pulse the row
-            deleteItemFromServer(args.model.id, args.completedCallback);
+            self.deleteItemFromServer(args.model.id, args.completedCallback);
+        });
+
+        // hook up handler for when the modal save button is clicked
+        self.koTable.addRowSaveHandler(function (args) {
+            console.log(["Save button was clicked!", args]);
+
+            // save the item to server and call the
+            // completed callback to pulse the row
+            self.saveItemToServer(args.model, args.completedCallback);
+        });
+
+        // hook up handler for when a row is clicked
+        self.koTable.addRowClickedHandler(function (args) {
+            toastr.info("You clicked on [" + args.model.name() + "]");
         });
     };
 
-});
+};
