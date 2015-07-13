@@ -1,4 +1,7 @@
-﻿/*global $: true, ko: true */
+﻿"use strict";
+/* global $: true, ko: true */
+/* jshint globalstrict: true */
+/* jshint multistr: true */
 /*
  * TODO: support mutiple tables per model
  * TODO: selectable rows
@@ -12,20 +15,20 @@
  * TODO: group by column
  * TODO: export data
  */
-$.fn.pulse = function (done) {
+$.fn.pulse = function(done) {
     var options = {
         times: 2,
         duration: 250
     };
 
-    var period = function (callback) {
-        $(this).animate({ opacity: 0.2 }, options.duration, function () {
+    var period = function(callback) {
+        $(this).animate({ opacity: 0.2 }, options.duration, function() {
             $(this).animate({ opacity: 1 }, options.duration, callback);
         });
     };
-    this.each(function () {
+    this.each(function() {
         var i = options.times, self = this;
-        var repeat = function () {
+        var repeat = function() {
             i = i - 1;
             if (!i && done && typeof done === "function") {
                 done();
@@ -41,9 +44,9 @@ $.fn.pulse = function (done) {
 ko.validation.init({
     parseInputAttributes: true,
 
-    errorElementClass: 'has-error',
-    errorMessageClass: 'text-danger',
-    errorClass: 'has-error',
+    errorElementClass: "has-error",
+    errorMessageClass: "text-danger",
+    errorClass: "has-error",
 
     decorateInputElement: true,
 
@@ -55,30 +58,29 @@ ko.validation.init({
     }
 });
 
-trace = function (m) {
-    log(m, 0);
-};
-debug = function (m) {
-    log(m, 1);
-};
-warn = function (m) {
-    log(m, 2);
-};
-error = function (m) {
-    log(m, 3);
-};
-log = function (m, level) {
+var log = function(m, level) {
     var logging = true;
     var minLevel = 1;
-    if (logging === true && level >= minLevel && window["console"] && window["console"]["log"]) {
-        window["console"]["log"](m);
+    if (logging && level >= minLevel && window.console && window.console.log) {
+        window.console.log(m);
     }
 };
+var trace = function(m) {
+    log(m, 0);
+};
+//var debug = function(m) {
+//    log(m, 1);
+//};
+//var warn = function(m) {
+//    log(m, 2);
+//};
+//var error = function(m) {
+//    log(m, 3);
+//};
 
-ko.bindingHandlers.koTable = new (function () {
-    var self = this;
 
-    self.init = function (tableElement, valueAccessor, allBindings, viewModel) {
+ko.bindingHandlers.koTable = {
+    init: function(tableElement, valueAccessor, allBindings, viewModel) {
         /*
         koTable: { 
         pageSize: 10, 
@@ -104,9 +106,9 @@ ko.bindingHandlers.koTable = new (function () {
         var tbody = table.find("tbody");
         var tfoot = table.find("tfoot");
         var pageSize = params.pageSize || -1;
-        var rowsClickable = params.rowsClickable != null ? params.rowsClickable : false;
+        var rowsClickable = params.rowsClickable === true ? true : false;
         var showSearch = params.showSearch === true ? true : false;
-        var allowSort = params.allowSort == null ? true : params.allowSort;
+        var allowSort = params.allowSort === true ? true : params.allowSort;
         var initialSortProperty = params.initialSortProperty;
         var initialSortDirection = params.initialSortDirection === "asc" ? "asc" : "desc";
         var showDeleteButton = params.showDeleteButton === true ? true : false;
@@ -116,16 +118,12 @@ ko.bindingHandlers.koTable = new (function () {
         var kt = new KnockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable);
         viewModel.koTable = {};
 
-        $(document).click(function() {
-            //table.find("td").removeClass("danger");
-        });
-
         if (showDeleteButton || showEditButton || showNewButton) {
-            thead.find("tr").each(function (i, o) {
+            thead.find("tr").each(function(i, o) {
                 $(o).prepend("<th style=\"width:40px; max-width:40px;padding-left:0;padding-right:0;text-align:center;\"></th>");
             });
 
-            tbody.find("tr").each(function (i, o) {
+            tbody.find("tr").each(function(i, o) {
                 var tr = $(o);
                 if (tr.find("td [data-bind]").length) {
                     tr.prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
@@ -136,59 +134,60 @@ ko.bindingHandlers.koTable = new (function () {
         var tableViewModel = $.extend(viewModel.koTable, kt);
         var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler;
 
-        viewModel.koTable.addRowClickedHandler = function (callback) {
+        viewModel.koTable.addRowClickedHandler = function(callback) {
             if (callback && typeof callback === "function") {
                 onRowClickedHandler = callback;
             }
         };
-        viewModel.koTable.addRowDeleteHandler = function (callback) {
+        viewModel.koTable.addRowDeleteHandler = function(callback) {
             if (callback && typeof callback === "function") {
                 onRowDeleteHandler = callback;
             }
         };
-        viewModel.koTable.addRowSaveHandler = function (callback) {
+        viewModel.koTable.addRowSaveHandler = function(callback) {
             if (callback && typeof callback === "function") {
                 onRowSaveHandler = callback;
             }
         };
 
-        tableViewModel.overrideModalTemplateId = function (id) {
+        tableViewModel.overrideModalTemplateId = function(id) {
             modalTemplateId = id;
         };
 
         viewModel.koTableReady.call();
 
+        function setModalItemUnmodified() {
+            ko.validation.group(tableViewModel.modalItem).find(function(observable) {
+                if (ko.validation.utils.isValidatable(observable)) {
+                    observable.isModified(false);
+                }
+            });
+        }
+
         if (showEditButton || showNewButton) {
-            tbody.find("tr").each(function (i, o) {
+
+            tbody.find("tr").each(function(i, o) {
                 var tr = $(o);
                 if (tr.find("td [data-bind]").length) {
                     tr.find("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
                 }
             });
 
-            tableViewModel.modalRow = null;
-            tableViewModel.modalOriginalItem = null;
-            tableViewModel.modalItem = null;
+            tableViewModel.modalRow = undefined;
+            tableViewModel.modalOriginalItem = undefined;
+            tableViewModel.modalItem = undefined;
             tableViewModel.modalItemReady = ko.observable(false);
-            tableViewModel.modalItemIsModified = ko.pureComputed(function () {
+            tableViewModel.modalItemIsModified = ko.pureComputed(function() {
                 var isModified = false;
 
                 if (tableViewModel.modalItemReady) {
-                    isModified = !!ko.validation.group(tableViewModel.modalItem).find(function (observable) {
+                    isModified = !!ko.validation.group(tableViewModel.modalItem).find(function(observable) {
                         return ko.validation.utils.isValidatable(observable) && observable.isModified();
                     });
                 }
 
                 return isModified;
             });
-
-            function setModalItemUnmodified() {
-                ko.validation.group(tableViewModel.modalItem).find(function (observable) {
-                    if (ko.validation.utils.isValidatable(observable)) {
-                        observable.isModified(false);
-                    };
-                });
-            };
 
             var modalHtml = "<div class=\"modal fade\" id=\"" + modalId + "\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"editModalLabel\">\
                 <div class=\"modal-dialog\" role=\"document\">\
@@ -197,7 +196,7 @@ ko.bindingHandlers.koTable = new (function () {
                             <button type=\"button\" class=\"close close-button\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\
                             <h4 class=\"modal-title\">Edit Record</h4>\
                         </div>\
-                        <div class=\"modal-body\" data-bind=\"template: { name: '" + modalTemplateId + "', if: $data.koTable.modalItemReady(), data: $data.koTable }\">\</div>\
+                        <div class=\"modal-body\" data-bind=\"template: { name: '" + modalTemplateId + "', if: $data.koTable.modalItemReady(), data: $data.koTable }\"></div>\
                         <div class=\"modal-footer\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm close-button\"><span class=\"glyphicon glyphicon-remove\"></span>&nbsp;Cancel</button>\
                             <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.modalItemIsModified() || !$data.koTable.modalItem.isValid()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
@@ -213,25 +212,21 @@ ko.bindingHandlers.koTable = new (function () {
 
             tfoot.find("td:first").append(modalHtml);
 
-            table.find("#" + modalId + " .close-button").click(function () {
-                table.find("#" + modalId).modal('hide');
+            table.find("#" + modalId + " .close-button").click(function() {
+                table.find("#" + modalId).modal("hide");
                 if (tableViewModel.modalRow) {
                     tableViewModel.modalRow.find("td.bg-info").removeClass("bg-info");
                 }
             });
-            table.find("#" + modalId + " .save-button").click(function () {
+            table.find("#" + modalId + " .save-button").click(function() {
                 if (tableViewModel.modalItem()) {
                     onRowSaveHandler({
                         model: ko.mapping.toJS(tableViewModel.modalItem()),
-                        completedCallback: function (savedId) {
-                            table.find("#" + modalId).modal('hide');
+                        completedCallback: function(savedId) {
+                            table.find("#" + modalId).modal("hide");
 
                             var model = ko.mapping.toJS(tableViewModel.modalItem());
-                            var isNew = !model.id;
-
-                            if (isNew) {
-                                model.id = parseInt(savedId);
-
+                            if (isNew && savedId) {
                                 tableViewModel.pushItem(model);
                             } else {
                                 ko.mapping.fromJS(model, tableViewModel.modalOriginalItem);
@@ -241,7 +236,7 @@ ko.bindingHandlers.koTable = new (function () {
                             if (mr) {
                                 mr.find("td")
                                     .addClass("bg-info")
-                                    .pulse(function () {
+                                    .pulse(function() {
                                         mr.find("td")
                                             .removeClass("bg-info");
                                     });
@@ -249,14 +244,14 @@ ko.bindingHandlers.koTable = new (function () {
                         }
                     });
                 } else {
-                    table.find("#" + modalId).modal('hide');
+                    table.find("#" + modalId).modal("hide");
                 }
 
             });
         }
 
         if (showDeleteButton === true) {
-            tbody.find("tr").each(function (i, o) {
+            tbody.find("tr").each(function(i, o) {
                 var tr = $(o);
                 if (tr.find("td [data-bind]").length) {
                     tr.find("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
@@ -265,12 +260,14 @@ ko.bindingHandlers.koTable = new (function () {
         }
 
         if (showNewButton === true) {
-            thead.find("tr").each(function (i, o) {
+            thead.find("tr").each(function(i, o) {
                 $(o).find("th:first").css({ "padding": "0 0 4px 0", "text-align": "center" }).append("<a style=\"padding: 0px 5px 1px 6px;margin-bottom:3px;\" class=\"btn btn-default btn-sm new-btn\"><span class=\"glyphicon glyphicon-plus text-info small\" style=\"margin:0;padding:0;\"></span></a>");
             });
         }
 
-        var clickFunction = function (evt) {
+        var isNew = false;
+
+        var clickFunction = function(evt) {
             var clickTarget = $(evt.target);
 
             if (clickTarget) {
@@ -291,7 +288,7 @@ ko.bindingHandlers.koTable = new (function () {
                             }
                         } else if (clickTarget.closest(".delete-btn").length) {
                             $("td").removeClass("danger");
-                            $(".popover").popover('destroy');
+                            $(".popover").popover("destroy");
 
                             clickedRow.find("td").addClass("danger");
 
@@ -299,15 +296,15 @@ ko.bindingHandlers.koTable = new (function () {
                             console.log(tdId);
                             clickTarget.popover({ trigger: "manual", container: tdId, placement: "right", html: true, content: "<div class=\"btn-group\"><a class=\"btn btn-sm btn-danger confirm-yes\" data-dismiss=\"confirmation\" href=\"#\" target=\"_self\"><i class=\"glyphicon glyphicon-ok\"></i></a><a class=\"btn btn-default btn-sm confirm-no\" data-dismiss=\"confirmation\"><i class=\"glyphicon glyphicon-remove\"></i></a></div>" }).popover("show");
 
-                            $(".confirm-yes").one("click", function (evt) {
-                                $(".popover").popover('destroy');
+                            $(".confirm-yes").one("click", function(evt) {
+                                $(".popover").popover("destroy");
 
                                 onRowDeleteHandler({
                                     event: evt,
                                     tr: clickedRow,
                                     model: ko.mapping.toJS(data),
-                                    completedCallback: function () {
-                                        clickedRow.find("td").pulse(function () {
+                                    completedCallback: function() {
+                                        clickedRow.find("td").pulse(function() {
                                             tableViewModel.removeItem(data);
                                         });
                                     }
@@ -316,9 +313,9 @@ ko.bindingHandlers.koTable = new (function () {
                                 evt.preventDefault();
                                 return true;
                             });
-                            $(".confirm-no").one("click", function (evt) {
+                            $(".confirm-no").one("click", function(evt) {
                                 $("td").removeClass("danger");
-                                $(".popover").popover('destroy');
+                                $(".popover").popover("destroy");
 
                                 evt.preventDefault();
                                 return true;
@@ -327,8 +324,10 @@ ko.bindingHandlers.koTable = new (function () {
 
                         } else if (clickTarget.closest(".edit-btn").length) {
 
+                            isNew = false;
+
                             $("td").removeClass("danger");
-                            $(".popover").popover('destroy');
+                            $(".popover").popover("destroy");
 
                             if (!$("#" + modalTemplateId).length) {
                                 alert("A template with id [" + modalTemplateId + "] was not found.");
@@ -349,11 +348,12 @@ ko.bindingHandlers.koTable = new (function () {
                             setModalItemUnmodified();
                             $("#" + modalId + " .modal-title").text("Edit Record");
                             $("#" + modalId).modal({ backdrop: "static" });
-                        }
-                        else if (clickTarget.closest(".new-btn").length) {
+                        } else if (clickTarget.closest(".new-btn").length) {
+
+                            isNew = true;
 
                             $("td").removeClass("danger");
-                            $(".popover").popover('destroy');
+                            $(".popover").popover("destroy");
 
                             if (!$("#" + modalTemplateId).length) {
                                 alert("A template with id [" + modalTemplateId + "] was not found.");
@@ -362,8 +362,8 @@ ko.bindingHandlers.koTable = new (function () {
 
                             var inputs = $($.parseHTML($("#" + modalTemplateId).get(0).innerText)).find("input");
                             var emptyModel = {};
-                            inputs.each(function (i, o) {
-                                emptyModel[o.name] = null;
+                            inputs.each(function(i, o) {
+                                emptyModel[o.name] = undefined;
                             });
 
                             if (!tableViewModel.modalItem) {
@@ -373,8 +373,8 @@ ko.bindingHandlers.koTable = new (function () {
                                 ko.mapping.fromJS(emptyModel, tableViewModel.modalItem());
                             }
 
-                            tableViewModel.modalRow = null;
-                            tableViewModel.modalOriginalItem = null;
+                            tableViewModel.modalRow = undefined;
+                            tableViewModel.modalOriginalItem = undefined;
 
                             setModalItemUnmodified();
                             $("#" + modalId + " .modal-title").text("New Record");
@@ -385,7 +385,7 @@ ko.bindingHandlers.koTable = new (function () {
             }
         };
 
-        tableViewModel.rowsClickable.subscribe(function (newValue) {
+        tableViewModel.rowsClickable.subscribe(function(newValue) {
             tbody.css("cursor", "default");
             tbody.off("click");
 
@@ -432,7 +432,7 @@ ko.bindingHandlers.koTable = new (function () {
                 currentSortHeading.append(ascendingIconHtml);
             }
 
-            sortableHeadings.click(function () {
+            sortableHeadings.click(function() {
                 sortableHeadings.find(".sort-icon").remove();
 
                 var sortProp = tableViewModel.sortProperty();
@@ -461,7 +461,7 @@ ko.bindingHandlers.koTable = new (function () {
             tfoot = table.find("tfoot");
         }
 
-        $.each(table.find(".ko-table-pagination"), function (i, o) {
+        $.each(table.find(".ko-table-pagination"), function(i, o) {
             $(o).html("<span data-bind=\"if: !koTable.hasRows()\">There are no records to show at the moment :(</span><ul class=\"pagination\" data-bind=\"if: koTable.paginationRequired()\" style=\"padding: 0 !important; margin: 5px 0 5px 0 !important;\" >" +
                     "<li data-bind=\"css: { disabled: koTable.isFirstPage }\"><a href=\"#\" data-bind=\"click: koTable.gotoFirstPage\"><span class=\"glyphicon glyphicon-step-backward\" aria-hidden=\"true\"></span></a></li>" +
                     "<li data-bind=\"css: { disabled: koTable.isFirstPage }\"><a href=\"#\" data-bind=\"click: koTable.gotoPreviousPage\"><span class=\"glyphicon glyphicon-backward\" aria-hidden=\"true\"></span></a></li>" +
@@ -485,9 +485,9 @@ ko.bindingHandlers.koTable = new (function () {
             koSearch.html("<span class=\"glyphicon glyphicon-search input-group-addon input-group-sm\" style=\"top: 0;\"></span>" +
                 "<input type=\"text\" class=\"form-control\" placeholder=\"search...\" value=\"\" />");
 
-            koSearch.find("input[type='text']").on("input", function (evt) {
+            koSearch.find("input[type='text']").on("input", function(evt) {
                 clearTimeout(searchInputTimeout);
-                searchInputTimeout = setTimeout(function () {
+                searchInputTimeout = setTimeout(function() {
                     var searchBox = $(evt.target);
                     var searchText = searchBox.val();
                     var searchSpan = koSearch.find("span:first");
@@ -495,7 +495,7 @@ ko.bindingHandlers.koTable = new (function () {
                     searchSpan.removeClass("glyphicon-search").removeClass("glyphicon-remove");
 
                     if (searchText.length > 0) {
-                        searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function () {
+                        searchSpan.addClass("glyphicon-remove").css({ "cursor": "pointer" }).one("click", function() {
                             searchSpan.removeClass("glyphicon-remove").addClass("glyphicon-search").css({ "cursor": "default" });
                             searchBox.val("").trigger("input");
                         });
@@ -510,13 +510,14 @@ ko.bindingHandlers.koTable = new (function () {
         } else {
             table.find(".ko-table-search").closest("td, th").attr("colspan", 100).hide();
         }
-    };
+    }
 
-})();
+};
 
-var KnockoutTable = (function () {
+var KnockoutTable = (function() {
 
     function knockoutTable(pageSize, allowSort, initialSortProperty, initialSortDirection, rowsClickable) {
+        /* jshint validthis: true */
         var self = this;
         var maxPagesToShowInPaginator = 5;
         var eventTypes = {
@@ -525,7 +526,7 @@ var KnockoutTable = (function () {
             onRowDeleteClicked: "onRowDeleteClicked"
         };
 
-        var _items = ko.observableArray([]);
+        var internalItems = ko.observableArray([]);
         var internalSortParams = ko.observable({ 'allowSort': allowSort, 'sortProperty': initialSortProperty, 'sortDirection': $.trim((initialSortDirection || "asc")).toLowerCase() });
         var internalPageSize = ko.observable(pageSize && pageSize > 0 ? pageSize : -1);
         var internalRowsClickable = ko.observable(rowsClickable === true);
@@ -533,8 +534,8 @@ var KnockoutTable = (function () {
 
         self.currentPage = ko.observable(0);
 
-        self.setRowFilter = function (searchString) {
-            trace('setRowFilter...');
+        self.setRowFilter = function(searchString) {
+            trace("setRowFilter...");
             var uwSearchString = ko.unwrap(searchString);
             if ($.trim(uwSearchString.toString()).length >= 2) {
                 internalRowFilter(uwSearchString.toString().toLowerCase());
@@ -544,18 +545,16 @@ var KnockoutTable = (function () {
         };
 
         var items = ko.pureComputed({
-            read: function () {
-                trace(['read items...', _items()]);
+            read: function() {
+                trace(["read items...", internalItems()]);
                 var rowFilter = ko.unwrap(internalRowFilter);
                 if (rowFilter && rowFilter.length) {
                     var filteredItems = [];
-                    $.each(_items(), function (i, o) {
-                        trace('item...');
+                    $.each(internalItems(), function(i, o) {
                         var jo = ko.mapping.toJS(o);
                         for (var propName in jo) {
-                            trace('item2...');
                             if (jo.hasOwnProperty(propName)) {
-                                var propVal = (jo[propName] == null ? '' : jo[propName]).toString().toLowerCase();
+                                var propVal = (jo[propName] === undefined ? "" : jo[propName]).toString().toLowerCase();
                                 var foundMatch = propVal.indexOf(rowFilter) >= 0;
                                 if (foundMatch) {
                                     filteredItems.push(o);
@@ -566,21 +565,21 @@ var KnockoutTable = (function () {
                     });
                     return filteredItems;
                 }
-                return _items();
+                return internalItems();
             },
-            write: function (value) {
-                trace('write items...');
-                _items(value);
+            write: function(value) {
+                trace("write items...");
+                internalItems(value);
             }
         }, self);
 
         self.rowsClickable = ko.computed({
-            read: function () {
-                trace('rowsClickable...read');
+            read: function() {
+                trace("rowsClickable...read");
                 return internalRowsClickable();
             },
-            write: function (value) {
-                trace('rowsClickable...write');
+            write: function(value) {
+                trace("rowsClickable...write");
                 var currentValue = internalRowsClickable();
                 var newValue = value === true ? true : false;
 
@@ -596,13 +595,12 @@ var KnockoutTable = (function () {
         }, self);
 
         self.pageSize = ko.computed({
-
-            read: function () {
-                trace('pageSize...read');
+            read: function() {
+                trace("pageSize...read");
                 return internalPageSize();
             },
-            write: function (value) {
-                trace('pageSize...write');
+            write: function(value) {
+                trace("pageSize...write");
                 var currentValue = internalPageSize();
                 var newValue = parseInt(value);
 
@@ -614,12 +612,12 @@ var KnockoutTable = (function () {
         }, self);
 
         self.sortProperty = ko.computed({
-            read: function () {
-                trace('sortProperty...read');
+            read: function() {
+                trace("sortProperty...read");
                 return internalSortParams().sortProperty;
             },
-            write: function (value) {
-                trace('sortProperty...write');
+            write: function(value) {
+                trace("sortProperty...write");
                 var currentValue = internalSortParams().sortProperty;
                 var newValue = $.trim(ko.unwrap(value));
 
@@ -633,12 +631,12 @@ var KnockoutTable = (function () {
         }, self);
 
         self.sortDirection = ko.pureComputed({
-            read: function () {
-                trace('sortDirection...read');
+            read: function() {
+                trace("sortDirection...read");
                 return internalSortParams().sortDirection;
             },
-            write: function (value) {
-                trace('sortDirection...write');
+            write: function(value) {
+                trace("sortDirection...write");
                 var currentValue = internalSortParams().sortDirection;
                 var newValue = $.trim((ko.unwrap(value) || "asc")).toLowerCase();
 
@@ -650,8 +648,8 @@ var KnockoutTable = (function () {
             }
         }, self);
 
-        self.toggleSortDirection = function () {
-            trace('toggleSortDirection...');
+        self.toggleSortDirection = function() {
+            trace("toggleSortDirection...");
             var currentSortDir = self.sortDirection();
             var newSortDir = currentSortDir === "asc" ? "desc" : "asc";
             self.sortDirection(newSortDir);
@@ -659,7 +657,7 @@ var KnockoutTable = (function () {
         };
 
         function objectSortComparer(objA, objB) {
-            trace('objectSortComparer...');
+            trace("objectSortComparer...");
             var uA = ko.unwrap(objA);
             var uB = ko.unwrap(objB);
 
@@ -678,38 +676,38 @@ var KnockoutTable = (function () {
             }
         }
 
-        self.clearItems = function () {
-            trace('clearItems...');
-            _items([]);
+        self.clearItems = function() {
+            trace("clearItems...");
+            internalItems([]);
             self.currentPage(-1);
             self.currentPage(0);
         };
 
-        self.pushItem = function (record) {
-            trace('pushItem...');
-            _items.push(ko.mapping.fromJS(ko.mapping.toJS(record)));
+        self.pushItem = function(record) {
+            trace("pushItem...");
+            internalItems.push(ko.mapping.fromJS(ko.mapping.toJS(record)));
         };
 
-        self.allItems = function () {
-            trace('allItems...');
-            return _items();
+        self.allItems = function() {
+            trace("allItems...");
+            return internalItems();
         };
 
-        self.observableItems = function () {
-            trace('observableItems...');
-            return _items;
+        self.observableItems = function() {
+            trace("observableItems...");
+            return internalItems;
         };
 
-        self.distinctValues = function (property, parseValue) {
-            trace('distinctValues...');
+        self.distinctValues = function(property, parseValue) {
+            trace("distinctValues...");
             var list = [];
 
-            if (parseValue == null || typeof parseValue !== "function") {
-                parseValue = function (value) {
-                    return value == null ? '' : value.toString();
+            if (parseValue === undefined || typeof parseValue !== "function") {
+                parseValue = function(value) {
+                    return value === undefined ? "" : value.toString();
                 };
             }
-            $.each(_items(), function (i, o) {
+            $.each(internalItems(), function(i, o) {
                 var uo = ko.unwrap(o);
                 var val = ko.unwrap(uo[property]);
 
@@ -721,27 +719,23 @@ var KnockoutTable = (function () {
             return list.sort();
         };
 
-        self.setItems = function (input) {
-            trace('setItems...');
+        self.setItems = function(input) {
+            trace("setItems...");
             self.clearItems();
-            var objects = input;
-            if ((typeof input) === "function") {
-                objects = input.apply(null, Array.prototype.slice.call(arguments, 1));
-            }
-            objects = objects || [];
+            var objects = input || [];
 
-            objects = $.map(objects, function (o) {
+            objects = $.map(objects, function(o) {
                 var jo = ko.mapping.toJS(o);
                 return ko.mapping.fromJS(jo);
             });
-            _items(objects);
+            internalItems(objects);
         };
 
-        self.findItem = function (propName, propValue) {
-            trace('findItem...');
+        self.findItem = function(propName, propValue) {
+            trace("findItem...");
             var uv = ko.unwrap(propValue);
 
-            var matched = $.grep(_items(), function (o) {
+            var matched = $.grep(internalItems(), function(o) {
                 var uo = ko.unwrap(o);
                 var up = ko.unwrap(uo[propName]);
 
@@ -751,61 +745,61 @@ var KnockoutTable = (function () {
             return matched;
         };
 
-        self.removeItem = function (obj) {
-            trace('removeItem...');
-            var toDelete = $.grep(_items(), function (o) {
+        self.removeItem = function(obj) {
+            trace("removeItem...");
+            var toDelete = $.grep(internalItems(), function(o) {
                 return obj === o;
             });
 
-            $.each(toDelete, function (i, o) {
-                _items.remove(o);
+            $.each(toDelete, function(i, o) {
+                internalItems.remove(o);
             });
         };
 
-        self.gotoNextPage = function () {
-            trace('gotoNextPage...');
+        self.gotoNextPage = function() {
+            trace("gotoNextPage...");
             if (self.currentPage() < (self.pageCount() - 1)) {
                 self.currentPage(self.currentPage() + 1);
             }
         };
-        self.gotoPreviousPage = function () {
-            trace('gotoPreviousPage...');
+        self.gotoPreviousPage = function() {
+            trace("gotoPreviousPage...");
             if (self.currentPage() > 0) {
                 self.currentPage(self.currentPage() - 1);
             }
         };
-        self.gotoLastPage = function () {
-            trace('gotoLastPage...');
+        self.gotoLastPage = function() {
+            trace("gotoLastPage...");
             self.currentPage(self.pageCount() - 1);
         };
-        self.gotoFirstPage = function () {
-            trace('gotoFirstPage...');
+        self.gotoFirstPage = function() {
+            trace("gotoFirstPage...");
             self.currentPage(0);
         };
-        self.gotoPage = function (page) {
-            trace('gotoPage...');
+        self.gotoPage = function(page) {
+            trace("gotoPage...");
             var newPage = page || 0;
             if (newPage !== self.currentPage()) {
                 self.currentPage(newPage);
             }
         };
-        self.isFirstPage = ko.pureComputed(function () {
-            trace('isFirstPage...');
+        self.isFirstPage = ko.pureComputed(function() {
+            trace("isFirstPage...");
             return self.currentPage() === 0;
         });
 
-        self.isLastPage = ko.pureComputed(function () {
-            trace('isLastPage...');
+        self.isLastPage = ko.pureComputed(function() {
+            trace("isLastPage...");
             return self.currentPage() === (self.pageCount() - 1);
         });
 
-        self.pageCount = ko.pureComputed(function () {
-            trace('pageCount...');
+        self.pageCount = ko.pureComputed(function() {
+            trace("pageCount...");
             return Math.ceil(internalPageSize() > 0 ? (items().length / internalPageSize()) || 1 : 1);
         });
 
-        self.paginationIndexes = ko.pureComputed(function () {
-            trace('paginationIndexes...');
+        self.paginationIndexes = ko.pureComputed(function() {
+            trace("paginationIndexes...");
             var radius = (maxPagesToShowInPaginator - 1) / 2;
 
             var last = Math.min(Math.max(self.currentPage() + radius, self.currentPage() + maxPagesToShowInPaginator), self.pageCount());
@@ -819,7 +813,7 @@ var KnockoutTable = (function () {
             return indexes;
         });
 
-        self.pagedItems = ko.pureComputed(function () {
+        self.pagedItems = ko.pureComputed(function() {
             var first = internalPageSize() > 0 ? internalPageSize() * self.currentPage() : 0;
             var last = internalPageSize() > 0 ? first + internalPageSize() : self.rowCount();
 
@@ -831,66 +825,29 @@ var KnockoutTable = (function () {
                 pItems = items().slice(first, last);
             }
 
-            trace('pagedItems... ' + pItems.length);
+            trace("pagedItems... " + pItems.length);
             return pItems;
         });
 
-        self.hasRows = ko.pureComputed(function () {
-            trace('hasRows...');
+        self.hasRows = ko.pureComputed(function() {
+            trace("hasRows...");
             return items() && items().length > 0;
         }, self);
 
-        self.paginationRequired = ko.pureComputed(function () {
-            trace('paginationRequired...');
+        self.paginationRequired = ko.pureComputed(function() {
+            trace("paginationRequired...");
             return self.hasRows() && self.pageCount() > 1;
         }, self);
 
-        self.rowCount = ko.pureComputed(function () {
-            trace('rowCount...');
+        self.rowCount = ko.pureComputed(function() {
+            trace("rowCount...");
             return self.hasRows() ? items().length : 0;
         });
 
         var internalListeners = {};
 
-        //self.onRowClicked = function (listener) {
-        //    trace('onRowClicked...');
-        //    addEventHandler(eventTypes.onRowClicked, listener);
-        //};
-        //self.onRowsClickableChanged = function (listener) {
-        //    trace('onRowsClickableChanged...');
-        //    addEventHandler(eventTypes.onRowsClickableChanged, listener);
-        //};
-        //self.onRowDeleteClicked = function (listener) {
-        //    trace('onRowDeleteClicked...');
-        //    addEventHandler(eventTypes.onRowDeleteClicked, listener);
-        //};
-
-        var addEventHandler = function (type, listener) {
-            trace('addEventHandler...');
-            if (typeof internalListeners[type] === "undefined") {
-                internalListeners[type] = [];
-            }
-
-            var alreadyExists = false;
-            if (internalListeners[type] && internalListeners[type].length > 0) {
-                $.each(internalListeners[type], function (i, l) {
-                    if (l.name && l.name.length && listener.name && listener.name.length) {
-                        alreadyExists = l === listener;
-                        return !alreadyExists;
-                    } else {
-                        alreadyExists = l.toString() === listener.toString();
-                        return !alreadyExists;
-                    }
-                });
-            }
-
-            if (!alreadyExists) {
-                internalListeners[type].push(listener);
-            }
-        };
-
-        var trigger = function (event, obj) {
-            trace('trigger...');
+        var trigger = function(event, obj) {
+            trace("trigger...");
             if (typeof event === "string") {
                 event = { type: event };
             }
@@ -911,8 +868,8 @@ var KnockoutTable = (function () {
             }
         };
 
-        self.removeListener = function (type, listener) {
-            trace('removeListener...');
+        self.removeListener = function(type, listener) {
+            trace("removeListener...");
             if (internalListeners[type] instanceof Array) {
                 var listeners = internalListeners[type];
                 for (var i = 0, len = listeners.length; i < len; i++) {
