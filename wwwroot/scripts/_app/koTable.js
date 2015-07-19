@@ -102,9 +102,9 @@ ko.bindingHandlers.koTable = {
         table.attr("id", tableId);
         var modalTemplateId = tableId + "-modal-template";
         var modalId = tableId + "-modal";
-        var thead = table.find("thead");
-        var tbody = table.find("tbody");
-        var tfoot = table.find("tfoot");
+        var thead = table.children("thead:first");
+        var tbody = table.children("tbody:first");
+        var tfoot = table.children("tfoot:first");
         var pageSize = params.pageSize || -1;
         var rowsClickable = params.rowsClickable === true ? true : false;
         var showSearch = params.showSearch === true ? true : false;
@@ -120,19 +120,20 @@ ko.bindingHandlers.koTable = {
         viewModel.koTable = {};
 
         if (showDeleteButton || showEditButton || showNewButton) {
-            thead.find("tr").each(function (i, o) {
+
+            thead.children("tr").each(function (i, o) {
                 $(o).prepend("<th style=\"width:40px; max-width:40px;padding-left:0;padding-right:0;text-align:center;\"></th>");
             });
 
-            tbody.find("tr").each(function (i, o) {
+            tbody.children("tr").each(function (i, o) {
                 var tr = $(o);
-                if (tr.find("td [data-bind]").length) {
-                    tr.prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
-                }
+                //if (tr.children("td [data-bind]").length) {
+                tr.prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
+                //}
             });
         }
 
-        var tableViewModel = $.extend(viewModel.koTable, kt);
+        $.extend(viewModel.koTable, kt);
         var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler;
 
         viewModel.koTable.addRowClickedHandler = function (callback) {
@@ -151,19 +152,19 @@ ko.bindingHandlers.koTable = {
             }
         };
 
-        tableViewModel.overrideModalTemplateId = function (id) {
+        viewModel.koTable.overrideModalTemplateId = function (id) {
             modalTemplateId = id;
         };
 
         var emptyModel = undefined;
-        tableViewModel.specifyEmptyViewModel = function (em) {
+        viewModel.koTable.specifyEmptyViewModel = function (em) {
             emptyModel = ko.mapping.toJS(em);
         };
 
         viewModel.koTableReady.call();
 
         function setModalItemUnmodified() {
-            ko.validation.group(tableViewModel.modalItem).find(function (observable) {
+            ko.validation.group(viewModel.koTable.modalItem).find(function (observable) {
                 if (ko.validation.utils.isValidatable(observable)) {
                     observable.isModified(false);
                 }
@@ -172,22 +173,22 @@ ko.bindingHandlers.koTable = {
 
         if (showEditButton || showNewButton) {
 
-            tbody.find("tr").each(function (i, o) {
+            tbody.children("tr").each(function (i, o) {
                 var tr = $(o);
-                if (tr.find("td [data-bind]").length) {
-                    tr.find("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
-                }
+                //if (tr.children("td [data-bind]").length) {
+                tr.children("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
+                //}
             });
 
-            tableViewModel.modalRow = undefined;
-            tableViewModel.modalOriginalItem = undefined;
-            tableViewModel.modalItem = undefined;
-            tableViewModel.modalItemReady = ko.observable(false);
-            tableViewModel.modalItemIsModified = ko.pureComputed(function () {
+            viewModel.koTable.modalRow = undefined;
+            viewModel.koTable.modalOriginalItem = undefined;
+            viewModel.koTable.modalItem = undefined;
+            viewModel.koTable.modalItemReady = ko.observable(false);
+            viewModel.koTable.modalItemIsModified = ko.pureComputed(function () {
                 var isModified = false;
 
-                if (tableViewModel.modalItemReady) {
-                    isModified = !!ko.validation.group(tableViewModel.modalItem).find(function (observable) {
+                if (viewModel.koTable.modalItemReady) {
+                    isModified = !!ko.validation.group(viewModel.koTable.modalItem).find(function (observable) {
                         return ko.validation.utils.isValidatable(observable) && observable.isModified();
                     });
                 }
@@ -220,18 +221,19 @@ ko.bindingHandlers.koTable = {
 
             table.find("#" + modalId + " .close-button").click(function () {
                 table.find("#" + modalId).modal("hide");
-                if (tableViewModel.modalRow) {
-                    tableViewModel.modalRow.find("td.bg-info").removeClass("bg-info");
+                if (viewModel.koTable.modalRow) {
+                    viewModel.koTable.modalRow.find("td.bg-info").removeClass("bg-info");
                 }
             });
             table.find("#" + modalId + " .save-button").click(function () {
-                if (tableViewModel.modalItem()) {
+                if (viewModel.koTable.modalItem()) {
                     onRowSaveHandler({
-                        model: ko.mapping.toJS(tableViewModel.modalItem()),
+                        model: ko.mapping.toJS(viewModel.koTable.modalItem()),
                         completedCallback: function (savedId, idPropertyName) {
+                            console.log("completedCallback");
                             table.find("#" + modalId).modal("hide");
 
-                            var model = ko.mapping.toJS(tableViewModel.modalItem());
+                            var model = ko.mapping.toJS(viewModel.koTable.modalItem());
                             if (isNew && savedId) {
                                 if (!idPropertyName) {
                                     for (var propName in model) {
@@ -242,12 +244,12 @@ ko.bindingHandlers.koTable = {
                                     }
                                 }
                                 model[idPropertyName] = savedId;
-                                tableViewModel.pushItem(model);
+                                viewModel.koTable.pushItem(model);
                             } else {
-                                ko.mapping.fromJS(model, tableViewModel.modalOriginalItem);
+                                ko.mapping.fromJS(model, viewModel.koTable.modalOriginalItem);
                             }
-
-                            var mr = tableViewModel.modalRow;
+                            console.log(["Updated model...", viewModel.koTable.modalOriginalItem]);
+                            var mr = viewModel.koTable.modalRow;
                             if (mr) {
                                 mr.find("td")
                                     .addClass("bg-info")
@@ -266,11 +268,11 @@ ko.bindingHandlers.koTable = {
         }
 
         if (showDeleteButton === true) {
-            tbody.find("tr").each(function (i, o) {
+            tbody.children("tr").each(function (i, o) {
                 var tr = $(o);
-                if (tr.find("td [data-bind]").length) {
-                    tr.find("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
-                }
+                //if (tr.children("td [data-bind]").length) {
+                tr.children("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
+                //}
             });
         }
 
@@ -317,7 +319,7 @@ ko.bindingHandlers.koTable = {
                                     model: ko.mapping.toJS(data),
                                     completedCallback: function () {
                                         clickedRow.find("td").pulse(function () {
-                                            tableViewModel.removeItem(data);
+                                            viewModel.koTable.removeItem(data);
                                         });
                                     }
                                 });
@@ -346,15 +348,15 @@ ko.bindingHandlers.koTable = {
                                 return;
                             }
 
-                            if (!tableViewModel.modalItem) {
-                                tableViewModel.modalItem = ko.validatedObservable(ko.mapping.fromJS(ko.mapping.toJS(data)));
-                                tableViewModel.modalItemReady(true);
+                            if (!viewModel.koTable.modalItem) {
+                                viewModel.koTable.modalItem = ko.validatedObservable(ko.mapping.fromJS(ko.mapping.toJS(data)));
+                                viewModel.koTable.modalItemReady(true);
                             } else {
-                                ko.mapping.fromJS(ko.mapping.toJS(data), tableViewModel.modalItem());
+                                ko.mapping.fromJS(ko.mapping.toJS(data), viewModel.koTable.modalItem());
                             }
-
-                            tableViewModel.modalRow = clickedRow;
-                            tableViewModel.modalOriginalItem = data;
+                            console.log(["Edit clicked!", viewModel.koTable.modalItem(), viewModel.koTable])
+                            viewModel.koTable.modalRow = clickedRow;
+                            viewModel.koTable.modalOriginalItem = data;
                             clickedRow.find("td").addClass("bg-info");
 
                             setModalItemUnmodified();
@@ -381,15 +383,15 @@ ko.bindingHandlers.koTable = {
                                 emptyModel = blank;
                             }
 
-                            if (!tableViewModel.modalItem) {
-                                tableViewModel.modalItem = ko.validatedObservable(ko.mapping.fromJS(emptyModel));
-                                tableViewModel.modalItemReady(true);
+                            if (!viewModel.koTable.modalItem) {
+                                viewModel.koTable.modalItem = ko.validatedObservable(ko.mapping.fromJS(emptyModel));
+                                viewModel.koTable.modalItemReady(true);
                             } else {
-                                ko.mapping.fromJS(emptyModel, tableViewModel.modalItem());
+                                ko.mapping.fromJS(emptyModel, viewModel.koTable.modalItem());
                             }
 
-                            tableViewModel.modalRow = undefined;
-                            tableViewModel.modalOriginalItem = undefined;
+                            viewModel.koTable.modalRow = undefined;
+                            viewModel.koTable.modalOriginalItem = undefined;
 
                             setModalItemUnmodified();
                             $("#" + modalId + " .modal-title").text("New Record");
@@ -400,7 +402,7 @@ ko.bindingHandlers.koTable = {
             }
         };
 
-        tableViewModel.rowsClickable.subscribe(function (newValue) {
+        viewModel.koTable.rowsClickable.subscribe(function (newValue) {
             tbody.css("cursor", "default");
             tbody.off("click");
 
@@ -437,8 +439,8 @@ ko.bindingHandlers.koTable = {
             var sortableHeadings = table.find("[data-sort-property]");
             sortableHeadings.css("cursor", "pointer");
 
-            var currentSortDir = tableViewModel.sortDirection();
-            var currentSortProp = tableViewModel.sortProperty();
+            var currentSortDir = viewModel.koTable.sortDirection();
+            var currentSortProp = viewModel.koTable.sortProperty();
             var currentSortHeading = table.find("[data-sort-property='" + currentSortProp + "']");
 
             if (currentSortDir === "desc") {
@@ -450,14 +452,14 @@ ko.bindingHandlers.koTable = {
             sortableHeadings.click(function () {
                 sortableHeadings.find(".sort-icon").remove();
 
-                var sortProp = tableViewModel.sortProperty();
+                var sortProp = viewModel.koTable.sortProperty();
                 var newSortProp = $(this).attr("data-sort-property");
                 var newSortDir = "asc";
 
                 if (sortProp === newSortProp) {
-                    newSortDir = tableViewModel.toggleSortDirection();
+                    newSortDir = viewModel.koTable.toggleSortDirection();
                 } else {
-                    tableViewModel.sortProperty(newSortProp);
+                    viewModel.koTable.sortProperty(newSortProp);
                 }
 
                 if (newSortDir === "desc") {
@@ -518,7 +520,7 @@ ko.bindingHandlers.koTable = {
                         searchSpan.addClass("glyphicon-search");
                     }
 
-                    tableViewModel.setRowFilter(searchText);
+                    viewModel.koTable.setRowFilter(searchText);
                 }, 500);
             });
             koSearch.closest("td, th").css({ 'padding-left': 0, 'padding-right': 0 }).attr("colspan", 100).closest("tr"); //.attr("data-bind", "visible: hasRows()");
