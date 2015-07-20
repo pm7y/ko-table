@@ -2,7 +2,8 @@
 After looking around I couldn't find a simple and clean way of making html tables pageable and sortable using knockoutjs. This is what I came up with. You might find it useful too.
 
 ## Usage ##
-There is a demo page in the src which has a fairly expansive example of usage. In a nutshell though here is what you need to do...
+Please download the source solution and look at the demo page which has several examples of usage. 
+In a nutshell though here is what you need to do...
 
 Here is an example of what it looks like with a bog standard, bootstrap styled, table. 
 To achieve this refer to the html and javascript below.
