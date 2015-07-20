@@ -244,12 +244,28 @@ ko.bindingHandlers.koTable = {
                                     }
                                 }
                                 model[idPropertyName] = savedId;
+                                console.log(["pushing new item...", model]);
                                 viewModel.koTable.pushItem(model);
                             } else {
+                                console.log(["remapping item...", model]);
                                 ko.mapping.fromJS(model, viewModel.koTable.modalOriginalItem);
                             }
-                            console.log(["Updated model...", viewModel.koTable.modalOriginalItem]);
+
                             var mr = viewModel.koTable.modalRow;
+
+                            if (!mr) {
+                                var rows = tbody.children("tr");
+                                var row = $.grep(rows, function (o) {
+                                    var rowData = ko.dataFor(o);
+                                    if (rowData && ko.toJS(rowData[idPropertyName]) === savedId) {
+                                        return o;
+                                    }
+                                });
+                                if (row && row.length) {
+                                    mr = $(row[0]);
+                                }
+                            }
+
                             if (mr) {
                                 mr.find("td")
                                     .addClass("bg-info")
