@@ -147,6 +147,13 @@ ko.bindingHandlers.koTable = {
             }
         };
 
+        viewModel.koTable.onValidateModalForm = ko.pureComputed(function() { return true; });
+        viewModel.koTable.addValidateModalFormHandler = function (callback) {
+            if (callback && typeof callback === "function") {
+                viewModel.koTable.onValidateModalForm = ko.pureComputed(callback);
+            }
+        };
+
         viewModel.koTable.overrideModalTemplateId = function (id) {
             modalTemplateId = id;
         };
@@ -183,7 +190,7 @@ ko.bindingHandlers.koTable = {
                         <div class=\"modal-body\" data-bind=\"template: { name: '" + modalTemplateId + "', if: $data.koTable.modalItemReady(), data: $data.koTable }\"></div>\
                         <div class=\"modal-footer\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm close-button\"><span class=\"glyphicon glyphicon-remove\"></span>&nbsp;Cancel</button>\
-                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.dirtyFlag.isDirty()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
+                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.dirtyFlag.isDirty() || !$data.koTable.onValidateModalForm()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
                         </div>\
                     </div>\
                 </div>\

@@ -107,6 +107,11 @@ var Example4Model = function () {
             // completed callback to pulse the row
             self.saveItemToServer(args.model, args.completedCallback);
         });
+
+        // hook up handler to validate the form
+        self.koTable.addValidateModalFormHandler(function () {
+            return true;
+        });
     };
 
 };
@@ -146,6 +151,11 @@ var Example5Model = function () {
         // hook up handler for when a row is clicked
         self.koTable.addRowClickedHandler(function (args) {
             toastr.info("You clicked on [" + args.model.name() + "]");
+        });
+
+        // hook up handler to validate the form
+        self.koTable.addValidateModalFormHandler(function () {
+            return true;
         });
     };
 
