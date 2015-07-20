@@ -147,7 +147,7 @@ ko.bindingHandlers.koTable = {
             }
         };
 
-        viewModel.koTable.onValidateModalForm = ko.pureComputed(function() { return true; });
+        viewModel.koTable.onValidateModalForm = ko.pureComputed(function () { return true; });
         viewModel.koTable.addValidateModalFormHandler = function (callback) {
             if (callback && typeof callback === "function") {
                 viewModel.koTable.onValidateModalForm = ko.pureComputed(callback);
@@ -554,7 +554,7 @@ var KnockoutTable = (function () {
 
         self.setRowFilter = function (searchString) {
             trace("setRowFilter...");
-            var uwSearchString = ko.unwrap(searchString);
+            var uwSearchString = ko.unwrap(searchString) || "";
             if ($.trim(uwSearchString.toString()).length >= 2) {
                 internalRowFilter(uwSearchString.toString().toLowerCase());
             } else {
@@ -572,7 +572,7 @@ var KnockoutTable = (function () {
                         var jo = ko.mapping.toJS(o);
                         for (var propName in jo) {
                             if (jo.hasOwnProperty(propName)) {
-                                var propVal = (jo[propName] === undefined ? "" : jo[propName]).toString().toLowerCase();
+                                var propVal = ((jo[propName] == null ? "" : jo[propName]) || "").toString().toLowerCase();
                                 var foundMatch = propVal.indexOf(rowFilter) >= 0;
                                 if (foundMatch) {
                                     filteredItems.push(o);
@@ -683,8 +683,8 @@ var KnockoutTable = (function () {
             var oB = ko.unwrap(uB[self.sortProperty()]);
 
             if (typeof (oA) === "string") {
-                oA = oA.toUpperCase();
-                oB = oB.toUpperCase();
+                oA = (oA || "").toUpperCase();
+                oB = (oB || "").toUpperCase();
             }
 
             if (self.sortDirection() === "desc") {
@@ -720,9 +720,9 @@ var KnockoutTable = (function () {
             trace("distinctValues...");
             var list = [];
 
-            if (parseValue === undefined || typeof parseValue !== "function") {
+            if (parseValue == null || typeof parseValue !== "function") {
                 parseValue = function (value) {
-                    return value === undefined ? "" : value.toString();
+                    return (value == null ? "" : value).toString();
                 };
             }
             $.each(internalItems(), function (i, o) {

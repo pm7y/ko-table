@@ -2,12 +2,12 @@
     {
         "id": 1,
         "isActive": false,
-        "age": 37,
-        "name": "Mcknight Slater",
-        "gender": "male",
-        "company": "REPETWIRE",
-        "email": "mcknightslater@repetwire.com",
-        "phone": "+1 (817) 440-3729"
+        "age": null,
+        "name": null,
+        "gender": null,
+        "company": null,
+        "email": null,
+        "phone": null
     },
     {
         "id": 2,
