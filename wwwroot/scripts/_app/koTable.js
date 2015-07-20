@@ -41,23 +41,6 @@ $.fn.pulse = function (done) {
     });
 };
 
-ko.validation.init({
-    parseInputAttributes: true,
-
-    errorElementClass: "has-error",
-    errorMessageClass: "text-danger",
-    errorClass: "has-error",
-
-    decorateInputElement: true,
-
-    insertMessages: false,
-    messagesOnModified: false,
-    decorateElementOnModified: false,
-    grouping: {
-        deep: true
-    }
-});
-
 var log = function (m, level) {
     var logging = true;
     var minLevel = 1;
@@ -78,6 +61,21 @@ var trace = function (m) {
 //    log(m, 3);
 //};
 
+function dirtyFlag(root, initiallyDirty) {
+    var result = {};
+    var initialState = ko.observable(ko.toJSON(root));
+    var isInitiallyDirty = ko.observable(initiallyDirty === true);
+
+    result.isDirty = ko.computed(function () {
+        return isInitiallyDirty() || initialState() !== ko.toJSON(root);
+    });
+
+    result.reset = function () {
+        initialState(ko.toJSON(root));
+        isInitiallyDirty(false);
+    };
+    return result;
+};
 
 ko.bindingHandlers.koTable = {
     init: function (tableElement, valueAccessor, allBindings, viewModel) {
@@ -126,10 +124,7 @@ ko.bindingHandlers.koTable = {
             });
 
             tbody.children("tr").each(function (i, o) {
-                var tr = $(o);
-                //if (tr.children("td [data-bind]").length) {
-                tr.prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
-                //}
+                $(o).prepend("<td style=\"padding-left:0;padding-right:0;text-align:center;\" id=\"ko-controls-" + new Date().getTime() + "\"></td>");
             });
         }
 
@@ -161,40 +156,22 @@ ko.bindingHandlers.koTable = {
             emptyModel = ko.mapping.toJS(em);
         };
 
+
         viewModel.koTableReady.call();
 
-        function setModalItemUnmodified() {
-            ko.validation.group(viewModel.koTable.modalItem).find(function (observable) {
-                if (ko.validation.utils.isValidatable(observable)) {
-                    observable.isModified(false);
-                }
-            });
-        }
 
         if (showEditButton || showNewButton) {
 
             tbody.children("tr").each(function (i, o) {
-                var tr = $(o);
-                //if (tr.children("td [data-bind]").length) {
-                tr.children("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
-                //}
+                $(o).children("td:first").prepend("<a class=\"edit-btn\" style=\"cursor:pointer;margin-left:" + (showDeleteButton ? "3px" : "0") + ";\"><span class=\"glyphicon glyphicon-edit text-default small\" style=\"margin:0;\"></span></a>");
             });
 
             viewModel.koTable.modalRow = undefined;
             viewModel.koTable.modalOriginalItem = undefined;
             viewModel.koTable.modalItem = undefined;
             viewModel.koTable.modalItemReady = ko.observable(false);
-            viewModel.koTable.modalItemIsModified = ko.pureComputed(function () {
-                var isModified = false;
 
-                if (viewModel.koTable.modalItemReady) {
-                    isModified = !!ko.validation.group(viewModel.koTable.modalItem).find(function (observable) {
-                        return ko.validation.utils.isValidatable(observable) && observable.isModified();
-                    });
-                }
-
-                return isModified;
-            });
+            viewModel.koTable.dirtyFlag = null;
 
             var modalHtml = "<div class=\"modal fade\" id=\"" + modalId + "\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"editModalLabel\">\
                 <div class=\"modal-dialog\" role=\"document\">\
@@ -206,7 +183,7 @@ ko.bindingHandlers.koTable = {
                         <div class=\"modal-body\" data-bind=\"template: { name: '" + modalTemplateId + "', if: $data.koTable.modalItemReady(), data: $data.koTable }\"></div>\
                         <div class=\"modal-footer\">\
                             <button type=\"button\" class=\"btn btn-default btn-sm close-button\"><span class=\"glyphicon glyphicon-remove\"></span>&nbsp;Cancel</button>\
-                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.modalItemIsModified() || !$data.koTable.modalItem.isValid()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
+                            <button type=\"button\" class=\"btn btn-primary btn-sm save-button\" data-bind=\"disable: !$data.koTable.modalItemReady() || !$data.koTable.dirtyFlag.isDirty()\"><span class=\"glyphicon glyphicon-floppy-disk\"></span>&nbsp;Save</button>\
                         </div>\
                     </div>\
                 </div>\
@@ -230,7 +207,7 @@ ko.bindingHandlers.koTable = {
                     onRowSaveHandler({
                         model: ko.mapping.toJS(viewModel.koTable.modalItem()),
                         completedCallback: function (savedId, idPropertyName) {
-                            console.log("completedCallback");
+                            trace("completedCallback");
                             table.find("#" + modalId).modal("hide");
 
                             var model = ko.mapping.toJS(viewModel.koTable.modalItem());
@@ -244,10 +221,10 @@ ko.bindingHandlers.koTable = {
                                     }
                                 }
                                 model[idPropertyName] = savedId;
-                                console.log(["pushing new item...", model]);
+                                trace(["pushing new item...", model]);
                                 viewModel.koTable.pushItem(model);
                             } else {
-                                console.log(["remapping item...", model]);
+                                trace(["remapping item...", model]);
                                 ko.mapping.fromJS(model, viewModel.koTable.modalOriginalItem);
                             }
 
@@ -285,10 +262,7 @@ ko.bindingHandlers.koTable = {
 
         if (showDeleteButton === true) {
             tbody.children("tr").each(function (i, o) {
-                var tr = $(o);
-                //if (tr.children("td [data-bind]").length) {
-                tr.children("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
-                //}
+                $(o).children("td:first").prepend("<a class=\"delete-btn\" style=\"cursor:pointer;margin-right:5px;\"><span class=\"glyphicon glyphicon-trash text-danger small\" style=\"margin:0;\"></span></a>");
             });
         }
 
@@ -365,17 +339,19 @@ ko.bindingHandlers.koTable = {
                             }
 
                             if (!viewModel.koTable.modalItem) {
-                                viewModel.koTable.modalItem = ko.validatedObservable(ko.mapping.fromJS(ko.mapping.toJS(data)));
+                                viewModel.koTable.modalItem = ko.observable(ko.mapping.fromJS(ko.mapping.toJS(data)));
+                                viewModel.koTable.dirtyFlag = dirtyFlag(viewModel.koTable.modalItem);
                                 viewModel.koTable.modalItemReady(true);
                             } else {
                                 ko.mapping.fromJS(ko.mapping.toJS(data), viewModel.koTable.modalItem());
                             }
-                            console.log(["Edit clicked!", viewModel.koTable.modalItem(), viewModel.koTable])
+                            trace(["Edit clicked!", viewModel.koTable.modalItem(), viewModel.koTable]);
                             viewModel.koTable.modalRow = clickedRow;
                             viewModel.koTable.modalOriginalItem = data;
                             clickedRow.find("td").addClass("bg-info");
 
-                            setModalItemUnmodified();
+                            viewModel.koTable.dirtyFlag.reset();
+
                             $("#" + modalId + " .modal-title").text("Edit Record");
                             $("#" + modalId).modal({ backdrop: "static" });
                         } else if (clickTarget.closest(".new-btn").length) {
@@ -400,7 +376,8 @@ ko.bindingHandlers.koTable = {
                             }
 
                             if (!viewModel.koTable.modalItem) {
-                                viewModel.koTable.modalItem = ko.validatedObservable(ko.mapping.fromJS(emptyModel));
+                                viewModel.koTable.modalItem = ko.observable(ko.mapping.fromJS(emptyModel));
+                                viewModel.koTable.dirtyFlag = dirtyFlag(viewModel.koTable.modalItem);
                                 viewModel.koTable.modalItemReady(true);
                             } else {
                                 ko.mapping.fromJS(emptyModel, viewModel.koTable.modalItem());
@@ -409,7 +386,8 @@ ko.bindingHandlers.koTable = {
                             viewModel.koTable.modalRow = undefined;
                             viewModel.koTable.modalOriginalItem = undefined;
 
-                            setModalItemUnmodified();
+                            viewModel.koTable.dirtyFlag.reset();
+
                             $("#" + modalId + " .modal-title").text("New Record");
                             $("#" + modalId).modal({ backdrop: "static" });
                         }
