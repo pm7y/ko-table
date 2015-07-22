@@ -129,7 +129,7 @@ ko.bindingHandlers.koTable = {
         }
 
         $.extend(viewModel.koTable, kt);
-        var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler;
+        var onRowClickedHandler, onRowDeleteHandler, onRowSaveHandler, onModalShowHandler;
 
         viewModel.koTable.addRowClickedHandler = function (callback) {
             if (callback && typeof callback === "function") {
@@ -144,6 +144,11 @@ ko.bindingHandlers.koTable = {
         viewModel.koTable.addRowSaveHandler = function (callback) {
             if (callback && typeof callback === "function") {
                 onRowSaveHandler = callback;
+            }
+        };
+        viewModel.koTable.addModalShowHandler = function (callback) {
+            if (callback && typeof callback === "function") {
+                onModalShowHandler = callback;
             }
         };
 
@@ -359,6 +364,16 @@ ko.bindingHandlers.koTable = {
 
                             viewModel.koTable.dirtyFlag.reset();
 
+                            $("#" + modalId).one("show.bs.modal", function () {
+                                if (onModalShowHandler != null) {
+                                    onModalShowHandler({
+                                        event: evt,
+                                        tr: clickedRow,
+                                        model: ko.mapping.toJS(data),
+                                        modal: $("#" + modalId)
+                                    });
+                                }
+                            });
                             $("#" + modalId + " .modal-title").text("Edit Record");
                             $("#" + modalId).modal({ backdrop: "static" });
                         } else if (clickTarget.closest(".new-btn").length) {
@@ -395,6 +410,16 @@ ko.bindingHandlers.koTable = {
 
                             viewModel.koTable.dirtyFlag.reset();
 
+                            $("#" + modalId).one("show.bs.modal", function () {
+                                if (onModalShowHandler != null) {
+                                    onModalShowHandler({
+                                        event: evt,
+                                        tr: clickedRow,
+                                        model: ko.mapping.toJS(data),
+                                        modal: $("#" + modalId)
+                                    });
+                                }
+                            });
                             $("#" + modalId + " .modal-title").text("New Record");
                             $("#" + modalId).modal({ backdrop: "static" });
                         }

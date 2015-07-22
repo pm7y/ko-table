@@ -153,6 +153,11 @@ var Example5Model = function () {
             toastr.info("You clicked on [" + args.model.name() + "]");
         });
 
+        // hook up handler for when modal is shown
+        self.koTable.addModalShowHandler(function (args) {
+            console.log(args);
+        });
+
         // hook up handler to validate the form
         self.koTable.addValidateModalFormHandler(function () {
             return true;
