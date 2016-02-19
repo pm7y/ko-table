@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 public class Person
 {
@@ -15,7 +14,7 @@ public class Person
     //[JsonProperty("name")]
     public string name { get; set; }
 
-    [JsonIgnoreAttribute]
+    [JsonIgnore]
     public string gender { get; set; }
 
     //[JsonProperty("company")]

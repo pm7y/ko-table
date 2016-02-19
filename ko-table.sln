@@ -1,12 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "wwwroot", "http://localhost:60401", "{271993AF-2DF8-4E97-A1D5-B3061F22F6D2}"
 	ProjectSection(WebsiteProperties) = preProject
 		UseIISExpress = "true"
-		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.5"
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.6"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_60401"
 		Debug.AspNetCompiler.PhysicalPath = "wwwroot\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_60401\"
@@ -30,6 +30,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		koTable.nuspec = koTable.nuspec
 		LICENSE = LICENSE
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{FB8F297A-EDB5-497A-B599-7045ABE3AAB6}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Global

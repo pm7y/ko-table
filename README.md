@@ -29,7 +29,7 @@ The tbody has a foreach binding bound to the ***pagedItems*** collection. But pa
 	        <th data-sort-property="isActive">Active</th>
 	    </tr>
 	</thead>
-	<tbody data-bind="foreach: pagedItems">
+	<tbody data-bind="foreach: koTable.pagedItems">
 	    <tr>
 	        <td><span data-bind="text: id"></span></td>
 	        <td><span data-bind="text: name"></span></td>

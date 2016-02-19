@@ -5,9 +5,9 @@ using System.Web.Http;
 
 public class PersonController : ApiController
 {
-    static readonly PersonRepository Repository = new PersonRepository();
-    int _maxDelayMs = 0;
-    static Random _rnd = new Random(Environment.TickCount);
+    private static readonly PersonRepository Repository = new PersonRepository();
+    private static readonly Random _rnd = new Random(Environment.TickCount);
+    private readonly int _maxDelayMs = 0;
 
     // GET api/<controller>
     public Person GetEmpty()
