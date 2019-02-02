@@ -1,4 +1,7 @@
 # ko-table #
+
+** No longer maintained. **
+
 After looking around I couldn't find a simple and clean way of making html tables pageable and sortable using knockoutjs. This is what I came up with. You might find it useful too.
 
 ## Usage ##
